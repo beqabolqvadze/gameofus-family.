@@ -19,6 +19,18 @@ if 'energy' not in st.session_state:
     st.session_state.energy = 5
 if 'completed_missions' not in st.session_state:
     st.session_state.completed_missions = set()
+
+# საწყისი მისიები
+if 'missions' not in st.session_state:
+    st.session_state.missions = [
+        {"title": "🏀 რაინდის ვარჯიში", "desc": "10 წუთი ივარჯიშე ან ითამაშე აქტიურად", "id": "m1"},
+        {"title": "📚 სიბრძნის წიგნი", "desc": "წაიკითხე 5 გვერდი ან ისწავლე 3 ახალი სიტყვა", "id": "m2"},
+        {"title": "🧹 ციხესიმაგრის მოწესრიგება", "desc": "დაეხმარე დედას/მამას 1 საქმეში ან დაალაგე ოთახი", "id": "m3"},
+        {"title": "🐾 ცხოველების მფარველი", "desc": "დაუსხი წყალი/საჭმელი შინაურ ან ეზოს ცხოველს", "id": "m4"},
+        {"title": "🤝 სიკეთის ტალღა", "desc": "გააკეთე 1 კეთილი საქმე (დაეხმარე მეგობარს/და-ძმას)", "id": "m5"},
+    ]
+
+# საწყისი ჯილდოები
 if 'rewards' not in st.session_state:
     st.session_state.rewards = [
         {"title": "🚲 30 წუთი ველოსიპედით სეირნობა", "cost": 3},
@@ -76,24 +88,16 @@ with tab1:
     # დღევანდელი მისიები
     st.subheader("📋 დღევანდელი მისიები")
     
-    missions = [
-        ("🏀 რაინდის ვარჯიში", "10 წუთი ივარჯიშე ან ითამაშე აქტიურად", "m1"),
-        ("📚 სიბრძნის წიგნი", "წაიკითხე 5 გვერდი ან ისწავლე 3 ახალი სიტყვა", "m2"),
-        ("🧹 ციხესიმაგრის მოწესრიგება", "დაეხმარე დედას/მამას 1 საქმეში ან დაალაგე ოთახი", "m3"),
-        ("🐾 ცხოველების მფარველი", "დაუსხი წყალი/საჭმელი შინაურ ან ეზოს ცხოველს", "m4"),
-        ("🤝 სიკეთის ტალღა", "გააკეთე 1 კეთილი საქმე (დაეხმარე მეგობარს/და-ძმას)", "m5"),
-    ]
-
-    for title, desc, m_id in missions:
+    for m in st.session_state.missions:
         col_m1, col_m2 = st.columns([3, 1])
         with col_m1:
-            st.markdown(f"**{title}**\n\n*{desc}*")
+            st.markdown(f"**{m['title']}**\n\n*{m['desc']}*")
         with col_m2:
-            if m_id in st.session_state.completed_missions:
+            if m['id'] in st.session_state.completed_missions:
                 st.success("✅ შესრულებულია")
             else:
-                if st.button("შესრულება", key=m_id):
-                    st.session_state.completed_missions.add(m_id)
+                if st.button("შესრულება", key=m['id']):
+                    st.session_state.completed_missions.add(m['id'])
                     st.session_state.xp += 20
                     st.session_state.stars += 1
                     st.rerun()
@@ -120,7 +124,7 @@ with tab1:
 
 with tab2:
     st.header("👨‍👩‍👧 მშობლის მართვის პანელი")
-    st.info("აქ შეგიძლიათ თვალი ადევნოთ პროგრესს, დააჯილდოოთ ბავშვი და მართოთ ჯილდოები.")
+    st.info("აქ შეგიძლიათ თვალი ადევნოთ პროგრესს, დაამატოთ ახალი მისიები და მართოთ ჯილდოები.")
 
     # პროგრესი
     col_p1, col_p2, col_p3 = st.columns(3)
@@ -132,7 +136,23 @@ with tab2:
     if st.session_state.xp >= 100:
         st.session_state.level += 1
         st.session_state.xp -= 100
-        st.success(f"🎉 ლოცავთ! ბავშვი გადავიდა მე-{st.session_state.level} დონეზე!")
+        st.success(f"🎉 გილოცავთ! ბავშვი გადავიდა მე-{st.session_state.level} დონეზე!")
+
+    st.divider()
+
+    # ახალი მისიის დამატება მშობლის მიერ
+    st.subheader("➕ ახალი მისიის დამატება")
+    new_m_title = st.text_input("მისიის სათაური (მაგ: 🎨 ნახატის დახატვა):")
+    new_m_desc = st.text_input("აღწერა (მაგ: დახატე შენი საყვარელი პერსონაჟი):")
+    
+    if st.button("➕ მისიის დამატება"):
+        if new_m_title and new_m_desc:
+            new_id = f"m_{len(st.session_state.missions) + 1}_{time.time()}"
+            st.session_state.missions.append({"title": new_m_title, "desc": new_m_desc, "id": new_id})
+            st.success(f"მისია '{new_m_title}' წარმატებით დაემატა!")
+            st.rerun()
+        else:
+            st.warning("გთხოვთ შეავსოთ ორივე ველი!")
 
     st.divider()
 
@@ -148,7 +168,7 @@ with tab2:
 
     st.divider()
 
-    # ახალი ჯილდოების დამატება მშობლის მიერ
+    # ახალი ჯილდოს დამატება მშობლის მიერ
     st.subheader("➕ ახალი ჯილდოს დამატება")
     new_reward_title = st.text_input("ჯილდოს დასახელება (მაგ: 🍦 ნაყინი):")
     new_reward_cost = st.number_input("ღირებულება ვარსკვლავებში (⭐):", min_value=1, max_value=50, value=3)
@@ -165,4 +185,3 @@ with tab2:
         st.session_state.completed_missions.clear()
         st.success("დღიური მისიები განახლდა!")
         st.rerun()
-        
