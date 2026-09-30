@@ -19,6 +19,10 @@ if 'energy' not in st.session_state:
     st.session_state.energy = 5
 if 'completed_missions' not in st.session_state:
     st.session_state.completed_missions = set()
+if 'requested_rewards' not in st.session_state:
+    st.session_state.requested_rewards = []  # მომლოდინე ჯილდოების სია
+if 'parent_penalties' not in st.session_state:
+    st.session_state.parent_penalties = 0
 
 # საწყისი მისიები
 if 'missions' not in st.session_state:
@@ -71,7 +75,7 @@ with tab1:
 
     st.divider()
 
-    # Urge Surfing (იმპულსის ტალღა)
+    # Urge Surfing
     st.subheader("🌊 Urge Surfing — იმპულსის ტალღა")
     st.write("თუ იგრძენი ბრაზი ან იმპულსი, ჩართე ტაიმერი და დაელოდე ტალღის გადაგორებას!")
     
@@ -116,15 +120,22 @@ with tab1:
             if st.button("მიღება", key=f"req_{idx}"):
                 if st.session_state.stars >= r['cost']:
                     st.session_state.stars -= r['cost']
-                    st.success(f"🎉 ყოჩაღ! შენ აირჩიე: {r['title']}")
+                    st.session_state.requested_rewards.append(r['title'])
+                    st.success(f"🎉 მოთხოვნა გაიგზავნა! მშობელი მალე შეასრულებს: {r['title']}")
                     st.balloons()
                     st.rerun()
                 else:
                     st.error("არ გყოფნის ვარსკვლავები!")
 
+    # მომლოდინე ჯილდოების სექცია ბავშვისთვის
+    if st.session_state.requested_rewards:
+        st.subheader("⏳ შენი მომლოდინე ჯილდოები")
+        for req_item in st.session_state.requested_rewards:
+            st.warning(f"🎁 **{req_item}** — მშობელი ამზადებს/გეგმავს ამ ჯილდოს!")
+
 with tab2:
     st.header("👨‍👩‍👧 მშობლის მართვის პანელი")
-    st.info("აქ შეგიძლიათ თვალი ადევნოთ პროგრესს, დაამატოთ ახალი მისიები და მართოთ ჯილდოები.")
+    st.info("აქ შეგიძლიათ თვალი ადევნოთ პროგრესს, დაადასტუროთ ჯილდოები და მართოთ მისიები.")
 
     # პროგრესი
     col_p1, col_p2, col_p3 = st.columns(3)
@@ -137,6 +148,33 @@ with tab2:
         st.session_state.level += 1
         st.session_state.xp -= 100
         st.success(f"🎉 გილოცავთ! ბავშვი გადავიდა მე-{st.session_state.level} დონეზე!")
+
+    st.divider()
+
+    # 📌 შესასრულებელი ჯილდოების სია მშობლისთვის
+    st.subheader("🎁 ბავშვის მიერ მოთხოვნილი ჯილდოები (შესასრულებელი)")
+    if not st.session_state.requested_rewards:
+        st.write("🎉 ამჟამად მომლოდინე ჯილდოები არ არის.")
+    else:
+        for idx, req_title in enumerate(st.session_state.requested_rewards):
+            col_req1, col_req2, col_req3 = st.columns([2, 1, 1])
+            with col_req1:
+                st.markdown(f"👉 **{req_title}**")
+            with col_req2:
+                if st.button("✅ შესრულდა", key=f"done_{idx}"):
+                    st.session_state.requested_rewards.pop(idx)
+                    st.success("ჯილდო გადაეცით ბავშვს!")
+                    st.rerun()
+            with col_req3:
+                if st.button("⚠️ ვერ ვასრულებ", key=f"fail_{idx}"):
+                    st.session_state.requested_rewards.pop(idx)
+                    st.session_state.stars += 2  # +2 კომპენსაცია ბავშვს
+                    st.session_state.parent_penalties += 1
+                    st.warning("პირობა ვერ შესრულდა. ბავშვს კომპენსაციის სახით დაუბრუნდა +2 ⭐!")
+                    st.rerun()
+
+    if st.session_state.parent_penalties > 0:
+        st.error(f"⚠️ ყურადღება: მშობლის მიერ გადადებული პირობები: {st.session_state.parent_penalties}. ეცადეთ დაპირებები დროულად შეასრულოთ!")
 
     st.divider()
 
