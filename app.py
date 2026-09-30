@@ -66,9 +66,9 @@ if 'rewards' not in st.session_state:
         {"title": "🎡 კვირას პარკში წასვლა", "cost": 10},
     ])
 
-# 👤 გვერდითა მენიუ: პროფილისა და ასაკის არჩევა
+# 👤 გვერდითა მენიუ: პროფილისა და ასაკის არჩევა (6-დან 99 წლამდე)
 st.sidebar.header("👤 პროფილი")
-age = st.sidebar.number_input("შეიყვანე ასაკი:", min_value=6, max_value=99, value=st.session_state.age, step=1)
+age = st.sidebar.number_input("შეიყვანე ასაკი:", min_value=6, max_value=99, value=int(st.session_state.age), step=1)
 
 if age != st.session_state.age:
     st.session_state.age = age
@@ -90,7 +90,7 @@ st.sidebar.success(f"📌 ჯგუფი: {age_group_name}")
 st.title("⭐ GameOfUs: Family Edition")
 st.caption("თამაში ბავშვისთვის • მხარდაჭერა მშობლისთვის • ზრდა ორივესთვის")
 
-tab1, tab2 = st.tabs(["👦 ბავშვის სივრცე", "👨‍👩‍👧 მშობლის პანელი"])
+tab1, tab2 = st.tabs(["👦 ბავშვის სივრცე", "👨‍‍👩‍👧 მშობლის პანელი"])
 
 with tab1:
     st.header("გამარჯობა, გმირო! 👋")
