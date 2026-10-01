@@ -84,7 +84,7 @@ TRANSLATIONS = {
         "enter_age": "Enter age:",
         "group_label": "📌 Group:",
         "tab_child": "👦 Child / Hero Space",
-        "tab_parent": "👨‍👩‍‍👧 Parent / Mentor Panel",
+        "tab_parent": "👨‍👩‍👧 Parent / Mentor Panel",
         "hello_hero": "Hello, Hero! 👋",
         "stars_label": "⭐ Your Stars:",
         "level_label": "🏆 Level:",
@@ -123,7 +123,7 @@ TRANSLATIONS = {
         "requested_rewards_parent": "🎁 Requested Rewards (To fulfill)",
         "no_pending_rewards": "🎉 No pending rewards.",
         "mark_done": "✅ Done",
-        "cant_do": "⚠️️ Can't fulfill",
+        "cant_do": "⚠️ Can't fulfill",
         "mood_history": "📜 Mood History",
         "no_moods": "No mood records yet.",
         "add_mission": "➕ Add New Mission",
@@ -161,8 +161,8 @@ TRANSLATIONS = {
         "save_mood": "💾 Сохранить эмоцию",
         "mood_saved": "Запись сохранена! 🌿",
         "urge_title": "🌊 Urge Surfing — Преодолей импульс",
-        "urge_button": "⏱️ Переждать волну (пауза 10 сек)",
-        "urge_spinner": "Волна проходит... Дышите глубже... 🌬️️",
+        "urge_button": "⏱️️ Переждать волну (пауза 10 сек)",
+        "urge_spinner": "Волна проходит... Дышите глубже... 🌬️",
         "urge_success": "✅ Отлично! Волна прошла!",
         "missions_title": "📋 Задания на сегодня",
         "completed": "✅ Выполнено",
@@ -176,7 +176,7 @@ TRANSLATIONS = {
         "pending_rewards": "⏳ Ожидающие награды",
         "preparing_reward": "Родитель готовит эту награду!",
         "parent_panel": "👨‍👩‍👧 Панель Родителя / Ментора",
-        "level_up": "🎉 Переход на level {}!",
+        "level_up": "🎉 Переход на уровень {}!",
         "bonus_stars": "⭐ Подарить бонусные звезды",
         "bonus_added": "+{} ⭐ добавлено!",
         "requested_rewards_parent": "🎁 Запрошенные награды",
@@ -234,7 +234,7 @@ TRANSLATIONS = {
         "no_stars": "Yeterli yıldız yok!",
         "pending_rewards": "⏳ Bekleyen Ödüllerin",
         "preparing_reward": "Ebeveyn bu ödülü hazırlıyor!",
-        "parent_panel": "👨‍👩‍👧 Ebeveyn / Rehber Paneli",
+        "parent_panel": "👨‍👩‍‍👧 Ebeveyn / Rehber Paneli",
         "level_up": "🎉 Seviye {} ulaşıldı!",
         "bonus_stars": "⭐ Hediye Yıldız Ver",
         "bonus_added": "+{} ⭐ eklendi!",
@@ -338,7 +338,7 @@ TRANSLATIONS = {
         "save_mood": "💾 気分を保存",
         "mood_saved": "記録しました！ 🌿",
         "urge_title": "🌊 衝動サーフィン — 波を乗り越えよう",
-        "urge_button": "⏱️️ 波をやり過ごす（10秒間ストップ）",
+        "urge_button": "⏱ 波をやり過ごす（10秒間ストップ）",
         "urge_spinner": "波が引いていきます... 深呼吸しましょう... 🌬️",
         "urge_success": "✅ よくできました！波が去りました！",
         "missions_title": "📋 今日のミッション",
@@ -370,7 +370,7 @@ TRANSLATIONS = {
         "reset_day": "🔄 日付のリセット",
         "reset_success": "デイリーミッションが更新されました！",
         "select_language": "🌐 言語を選択",
-        "settings": "⚙️️ 設定"
+        "settings": "⚙️ 設定"
     }
 }
 
@@ -547,9 +547,9 @@ with tab1:
 
     st.divider()
 
-    # 📋 მისიები
+    # 📋 მისიები (აქ გადაეცემა არჩეული ენა)
     st.subheader(f"{t('missions_title')} ({age_group_name})")
-    current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age) + st.session_state.custom_missions
+    current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age, lang=st.session_state.language) + st.session_state.custom_missions
     
     for m in current_missions:
         col_m1, col_m2 = st.columns([3, 1])
