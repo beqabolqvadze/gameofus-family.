@@ -1,4 +1,4 @@
-from enum import Enum
+um
 from dataclasses import dataclass
 from typing import List
 
@@ -55,6 +55,4 @@ class AgeBasedMissions:
                 {"title": "🏃 ჯანმრთელობა", "desc": "30 წუთი ფიზიკური აქტივობა", "id": "m_age_1"},
                 {"title": "👨‍👩‍👧 ოჯახური დრო", "desc": "გაატარე ხარისხიანი დრო ოჯახთან", "id": "m_age_2"},
                 {"title": "💼 პროფესიული ზრდა", "desc": "გადადგი ნაბიჯი კარიერაში", "id": "m_age_3"},
-                {"title": "🧘 სტრესის მართვა", "desc": "გამოიყენე Urge Surfing ტექნიკა", "id": "m_age_4"},
-                  ]
-          
+                {"title": "🧘 სტრესის
