@@ -341,4 +341,318 @@ if st.session_state.last_active_date != today_str:
     save_data()
 
 # 👤 გვერდითა მენიუ (SIDEBAR)
-st.sidebar.header(
+st.sidebar.header(f"⚙️ {t('settings')}")
+
+language_list = ["ქართული", "English", "Русский"]
+lang_index = language_list.index(st.session_state.language) if st.session_state.language in language_list else 0
+
+selected_lang = st.sidebar.selectbox(
+    t("select_language"),
+    options=language_list,
+    index=lang_index
+)
+
+if selected_lang != st.session_state.language:
+    st.session_state.language = selected_lang
+    save_data()
+    st.rerun()
+
+st.sidebar.divider()
+st.sidebar.header(t("profile"))
+age = st.sidebar.number_input(t("enter_age"), min_value=6, max_value=99, value=int(st.session_state.age), step=1)
+
+if age != st.session_state.age:
+    st.session_state.age = age
+    save_data()
+
+if 6 <= age <= 9:
+    age_group_name = "6-9 წელი (პატარა მკვლევარი)"
+elif 10 <= age <= 13:
+    age_group_name = "10-13 წელი (ახალგაზრდა გმირი)"
+elif 13 <= age <= 17:
+    age_group_name = "13-17 წელი (მოზარდი მეომარი)"
+elif 18 <= age <= 25:
+    age_group_name = "18-25 წელი (ახალგაზრდა ლიდერი)"
+else:
+    age_group_name = "26+ წელი (ბრძენი მენტორი)"
+
+st.sidebar.success(f"{t('group_label')} {age_group_name}")
+
+# ==========================================
+# მთავარი ინტერფეისი
+# ==========================================
+st.title(t("title"))
+st.caption(t("subtitle"))
+
+tab1, tab2, tab3 = st.tabs([t("tab_child"), t("tab_parent"), t("tab_chess")])
+
+with tab1:
+    st.header(t("hello_hero"))
+    st.info(f"{t('stars_label')} **{st.session_state.stars} ⭐** | {t('level_label')} **{st.session_state.level}** | {t('xp_label')} **{st.session_state.xp}/100**")
+    
+    st.subheader(f"{t('energy_label')} {st.session_state.energy}/10")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button(t("energy_plus")):
+            st.session_state.energy = min(10, st.session_state.energy + 2)
+            save_data()
+            st.rerun()
+    with col2:
+        if st.button(t("energy_minus")):
+            st.session_state.energy = max(1, st.session_state.energy - 2)
+            save_data()
+            st.rerun()
+
+    st.divider()
+
+    # 📝 ემოციების დღიური
+    st.subheader(t("mood_title"))
+    col_e1, col_e2, col_e3, col_e4, col_e5 = st.columns(5)
+    selected_mood = None
+    if col_e1.button("😃"): selected_mood = t("mood_happy")
+    if col_e2.button("🧘"): selected_mood = t("mood_calm")
+    if col_e3.button("😴"): selected_mood = t("mood_tired")
+    if col_e4.button("😔"): selected_mood = t("mood_sad")
+    if col_e5.button("😡"): selected_mood = t("mood_angry")
+
+    mood_note = st.text_input(t("mood_note_placeholder"), key="mood_input")
+    if st.button(t("save_mood")):
+        if selected_mood or mood_note:
+            entry = f"{today_str} | {selected_mood if selected_mood else '📝'} {mood_note}"
+            st.session_state.mood_logs.append(entry)
+            save_data()
+            st.success(t("mood_saved"))
+
+    st.divider()
+
+    # 🌊 Urge Surfing
+    st.subheader(t("urge_title"))
+    if st.button(t("urge_button")):
+        with st.spinner(t("urge_spinner")):
+            time.sleep(10)
+        st.success(t("urge_success"))
+        st.session_state.xp += 15
+        st.session_state.stars += 1
+        save_data()
+        st.balloons()
+
+    st.divider()
+
+    # 📋 მისიები
+    st.subheader(f"{t('missions_title')} ({age_group_name})")
+    current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age, lang=st.session_state.language) + st.session_state.custom_missions
+    
+    for m in current_missions:
+        col_m1, col_m2 = st.columns([3, 1])
+        with col_m1:
+            st.markdown(f"**{m['title']}**\n\n*{m['desc']}*")
+        with col_m2:
+            if m['id'] in st.session_state.completed_missions:
+                st.success(t("completed"))
+            else:
+                if st.button(t("do_mission"), key=m['id']):
+                    st.session_state.completed_missions.add(m['id'])
+                    st.session_state.xp += 20
+                    st.session_state.stars += 1
+                    save_data()
+                    st.rerun()
+
+    st.divider()
+
+    # 🎁 ჯილდოების მაღაზია
+    st.subheader(t("rewards_title"))
+    weekday = datetime.now().weekday()
+    is_weekend_window = weekday in [4, 5, 6]
+
+    if not is_weekend_window:
+        st.info(t("rewards_locked_msg"))
+
+    for idx, r in enumerate(st.session_state.rewards):
+        col_r1, col_r2 = st.columns([3, 1])
+        with col_r1:
+            st.markdown(f"**{r['title']}** — `{r['cost']} ⭐`")
+        with col_r2:
+            if is_weekend_window:
+                if st.button(t("claim_reward"), key=f"req_{idx}"):
+                    if st.session_state.stars >= r['cost']:
+                        st.session_state.stars -= r['cost']
+                        st.session_state.requested_rewards.append(r['title'])
+                        save_data()
+                        st.success(t("reward_requested"))
+                        st.rerun()
+                    else:
+                        st.error(t("no_stars"))
+            else:
+                st.button(t("locked_button"), key=f"req_dis_{idx}", disabled=True)
+
+    if st.session_state.requested_rewards:
+        st.subheader(t("pending_rewards"))
+        for req_item in st.session_state.requested_rewards:
+            st.warning(f"🎁 **{req_item}** — {t('preparing_reward')}")
+
+with tab2:
+    st.header(t("parent_panel"))
+
+    col_p1, col_p2, col_p3 = st.columns(3)
+    col_p1.metric(label=t("level_label"), value=st.session_state.level)
+    col_p2.metric(label=t("xp_label"), value=f"{st.session_state.xp} / 100")
+    col_p3.metric(label=t("stars_label"), value=st.session_state.stars)
+
+    if st.session_state.xp >= 100:
+        st.session_state.level += 1
+        st.session_state.xp -= 100
+        save_data()
+        st.success(t("level_up").format(st.session_state.level))
+
+    st.divider()
+
+    # ⭐ ბონუს ვარსკვლავები
+    st.subheader(t("bonus_stars"))
+    col_b1, col_b2, col_b3 = st.columns(3)
+    with col_b1:
+        if st.button("➕ 1 ⭐"):
+            st.session_state.stars += 1
+            save_data()
+            st.success(t("bonus_added").format(1))
+            st.rerun()
+    with col_b2:
+        if st.button("➕ 3 ⭐"):
+            st.session_state.stars += 3
+            save_data()
+            st.success(t("bonus_added").format(3))
+            st.rerun()
+    with col_b3:
+        if st.button("➕ 5 ⭐"):
+            st.session_state.stars += 5
+            save_data()
+            st.success(t("bonus_added").format(5))
+            st.rerun()
+
+    st.divider()
+
+    # 🎁 მოთხოვნილი ჯილდოები
+    st.subheader(t("requested_rewards_parent"))
+    if not st.session_state.requested_rewards:
+        st.write(t("no_pending_rewards"))
+    else:
+        for idx, req_title in enumerate(st.session_state.requested_rewards):
+            col_req1, col_req2, col_req3 = st.columns([2, 1, 1])
+            with col_req1:
+                st.markdown(f"👉 **{req_title}**")
+            with col_req2:
+                if st.button(t("mark_done"), key=f"done_{idx}"):
+                    st.session_state.requested_rewards.pop(idx)
+                    save_data()
+                    st.rerun()
+            with col_req3:
+                if st.button(t("cant_do"), key=f"fail_{idx}"):
+                    st.session_state.requested_rewards.pop(idx)
+                    st.session_state.stars += 2
+                    st.session_state.parent_penalties += 1
+                    save_data()
+                    st.rerun()
+
+    st.divider()
+
+    # 📜 ემოციების ისტორია
+    st.subheader(t("mood_history"))
+    if st.session_state.mood_logs:
+        for log in reversed(st.session_state.mood_logs[-5:]):
+            st.write(f"• {log}")
+    else:
+        st.write(t("no_moods"))
+
+    st.divider()
+
+    # ➕ ახალი მისიის დამატება
+    st.subheader(t("add_mission"))
+    new_m_title = st.text_input(t("mission_title_input"))
+    new_m_desc = st.text_input(t("mission_desc_input"))
+    if st.button(t("add_mission_btn")):
+        if new_m_title and new_m_desc:
+            new_id = f"custom_{len(st.session_state.custom_missions) + 1}"
+            st.session_state.custom_missions.append({"title": new_m_title, "desc": new_m_desc, "id": new_id})
+            save_data()
+            st.success(t("mission_added"))
+            st.rerun()
+
+    st.divider()
+
+    # 🔄 დღის გადატვირთვა
+    if st.button(t("reset_day")):
+        st.session_state.completed_missions.clear()
+        save_data()
+        st.success(t("reset_success"))
+        st.rerun()
+
+with tab3:
+    st.header("♟️ შინაგანი ჭადრაკი — დამკვირვებლის პოზიცია")
+    st.caption("რეალური გამოწვევები • გააზრებული სვლები • სიმშვიდის შენარჩუნება")
+
+    st.markdown("""
+    > *„თამაში არ მთავრდება გამარჯვებით ან დამარცხებით. თამაში მთავრდება მაშინ, როცა შენ ირჩევ პაუზას, სიმართლეს და შინაგან სიფხიზლეს.“*
+    """)
+    st.divider()
+
+    st.subheader("1. 🌑 აირჩიე წინაღობა / გამოწვევა:")
+    obstacle = st.selectbox(
+        "რა გამოწვევას აწყდები დღეს?",
+        [
+            "🔥 ძველი ჩვევის ძახილი / ცდუნება",
+            "🏃 იმპულსური რეაქცია / მოუთმენლობა",
+            "👥 სხვების სიამოვნება (People-pleasing)",
+            "😮‍💨 დაღლილობა და ყურადღების გაფანტვა",
+            "💭 მომავლის შფოთვა / უაზრო ფიქრები"
+        ]
+    )
+
+    st.divider()
+
+    st.subheader("2. 🛡️ აირჩიე შენი პასუხი (დამკვირვებლის სვლა):")
+    
+    col_ch1, col_ch2, col_ch3 = st.columns(3)
+    
+    selected_move = None
+    move_desc = ""
+
+    with col_ch1:
+        if st.button("🌊 Urge Surfing"):
+            selected_move = "Urge Surfing (ტალღაზე სერფინგი)"
+            move_desc = "არ ვებრძვი ტალღას, უბრალოდ ვაკვირდები, როგორ ჩაივლის 10 წამში."
+        if st.button("⏱️ 2-წუთიანი წესი"):
+            selected_move = "2-წუთიანი წესი"
+            move_desc = "ვიწყებ პატარა ნაბიჯით 2 წუთით და ვაჩერებ შინაგან წინააღმდეგობას."
+
+    with col_ch2:
+        if st.button("🤫 დუმილი & პაუზა"):
+            selected_move = "დუმილი & პაუზა"
+            move_desc = "არ ვპასუხობ რეაქტიულად. ვაკეთებ ღრმა ჩასუნთქვას."
+        if st.button("👑 საკუთარი თავის პრიორიტეტი"):
+            selected_move = "საკუთარი თავის პრიორიტეტი"
+            move_desc = "უარს ვამბობ სხვების სიამოვნებაზე, ჩემი შინაგანი მშვიდობის სასარგებლოდ."
+
+    with col_ch3:
+        if st.button("👁️ დამკვირვებლის თვალი"):
+            selected_move = "დამკვირვებლის პოზიცია"
+            move_desc = "მე არ ვარ ჩემი ფიქრი, მე ვარ ის, ვინც ამ ფიქრს აკვირდება."
+        if st.button("🌟 ჭეშმარიტება"):
+            selected_move = "ჭეშმარიტება & ყოფნა"
+            move_desc = "ვიღებ მომენტს ისეთს, როგორიც არის, ბრძოლის გარეშე."
+
+    if selected_move:
+        log_text = f"{today_str} | 🌑 {obstacle} ➔ 🛡️ **{selected_move}**: *{move_desc}*"
+        st.session_state.chess_history.append(log_text)
+        st.session_state.xp += 10
+        st.session_state.stars += 1
+        save_data()
+        st.success(f"🎯 სვლა გაკეთებულია! +10 XP | +1 ⭐\n\n**{selected_move}**: {move_desc}")
+        st.balloons()
+
+    st.divider()
+
+    st.subheader("📜 შინაგანი ბრძოლების & გაძლების დღიური")
+    if st.session_state.chess_history:
+        for history_item in reversed(st.session_state.chess_history[-6:]):
+            st.info(f"• {history_item}")
+    else:
+        st.write("ჯერ სვლები არ გაგიკეთებია. აირჩიე წინაღობა და გააკეთე პირველი სვლა!")
