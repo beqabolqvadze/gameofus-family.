@@ -3,7 +3,6 @@ import time
 import json
 import os
 from datetime import datetime
-from age_missions import AgeBasedMissions
 
 # გვერდის კონფიგურაცია
 st.set_page_config(
@@ -15,7 +14,71 @@ st.set_page_config(
 DB_FILE = "user_data.json"
 
 # ==========================================
-# 1. ენების ლექსიკონი (TRANSLATIONS)
+# 1. ასაკობრივი მისიების მოდული (ჩაშენებული)
+# ==========================================
+class AgeBasedMissions:
+    @staticmethod
+    def get_missions_for_age(age, lang="ქართული"):
+        if lang == "English":
+            if 6 <= age <= 9:
+                return [
+                    {"id": "m1", "title": "🏃 Morning Exercise", "desc": "Do 5 minutes of morning stretching."},
+                    {"id": "m2", "title": "💧 Drink Water", "desc": "Drink a full glass of water."},
+                    {"id": "m3", "title": "📚 Read a Page", "desc": "Read at least one page of a book."}
+                ]
+            elif 10 <= age <= 13:
+                return [
+                    {"id": "m1", "title": "🏋️ Active Workout", "desc": "Complete a 15-minute workout session."},
+                    {"id": "m2", "title": "🥗 Healthy Snack", "desc": "Eat a healthy meal or salad."},
+                    {"id": "m3", "title": "🧘 Mindfulness", "desc": "Take 2 minutes of silent breathing."}
+                ]
+            else:
+                return [
+                    {"id": "m1", "title": "🎯 Daily Focus", "desc": "Define your main goal for the day."},
+                    {"id": "m2", "title": "🚴 Physical Activity", "desc": "Cardio or gym session for 30+ minutes."},
+                    {"id": "m3", "title": "🧠 Self-Reflection", "desc": "Observe your thoughts and write a short note."}
+                ]
+        elif lang == "Русский":
+            if 6 <= age <= 9:
+                return [
+                    {"id": "m1", "title": "🏃 Утренняя зарядка", "desc": "Сделайте 5 минут разминки."},
+                    {"id": "m2", "title": "💧 Выпить воды", "desc": "Выпейте стакан чистой воды."},
+                    {"id": "m3", "title": "📚 Почитать книгу", "desc": "Прочитайте хотя бы одну страницу."}
+                ]
+            elif 10 <= age <= 13:
+                return [
+                    {"id": "m1", "title": "🏋️ Активная тренировка", "desc": "15 минут физических упражнений."},
+                    {"id": "m2", "title": "🥗 Полезный перекус", "desc": "Съешьте что-то полезное."},
+                    {"id": "m3", "title": "🧘 Осознанность", "desc": "2 минуты дыхательной паузы."}
+                ]
+            else:
+                return [
+                    {"id": "m1", "title": "🎯 Фокус дня", "desc": "Определите главную цель на день."},
+                    {"id": "m2", "title": "🚴 Физическая активность", "desc": "Кардио или зал от 30 минут."},
+                    {"id": "m3", "title": "🧠 Самоанализ", "desc": "Проследите за своими мыслями."}
+                ]
+        else: # ქართული (Default)
+            if 6 <= age <= 9:
+                return [
+                    {"id": "m1", "title": "🏃 დილის ვარჯიში", "desc": "გააკეთე 5 წუთიანი გაჭიმვა."},
+                    {"id": "m2", "title": "💧 წყლის დალევა", "desc": "დალიე ერთი ჭიქა სუფთა წყალი."},
+                    {"id": "m3", "title": "📚 წიგნის წაკითხვა", "desc": "წაიკითხე წიგნის ერთი გვერდი მაინც."}
+                ]
+            elif 10 <= age <= 13:
+                return [
+                    {"id": "m1", "title": "🏋️ აქტიური ვარჯიში", "desc": "შეასრულე 15 წუთიანი ფიზიკური აქტივობა."},
+                    {"id": "m2", "title": "🥗 ჯანსაღი კვება", "desc": "მიირთვი ჯანსაღი საჭმელი ან სალათი."},
+                    {"id": "m3", "title": "🧘 დამკვირვებლის პაუზა", "desc": "დაუთმე 2 წუთი სუნთქვას და სიმშვიდეს."}
+                ]
+            else:
+                return [
+                    {"id": "m1", "title": "🎯 დღის მთავარი მიზანი", "desc": "განსაზღვრე დღევანდელი პრიორიტეტი."},
+                    {"id": "m2", "title": "🚴 ფიზიკური აქტივობა / სპორტი", "desc": "კარდიო ან ზალი (30+ წუთი)."},
+                    {"id": "m3", "title": "🧠 შინაგანი დაკვირვება", "desc": "დააკვირდი შენს ფიქრებს და გააზრე მომენტი."}
+                ]
+
+# ==========================================
+# 2. ენების ლექსიკონი (TRANSLATIONS)
 # ==========================================
 TRANSLATIONS = {
     "ქართული": {
@@ -161,7 +224,7 @@ TRANSLATIONS = {
         "save_mood": "💾 Сохранить эмоцию",
         "mood_saved": "Запись сохранена! 🌿",
         "urge_title": "🌊 Urge Surfing — Преодолей импульс",
-        "urge_button": "⏱️️ Переждать волну (пауза 10 сек)",
+        "urge_button": "⏱ Переждать волну (пауза 10 сек)",
         "urge_spinner": "Волна проходит... Дышите глубже... 🌬️",
         "urge_success": "✅ Отлично! Волна прошла!",
         "missions_title": "📋 Задания на сегодня",
@@ -194,183 +257,6 @@ TRANSLATIONS = {
         "reset_success": "Дневные задания обновлены!",
         "select_language": "🌐 Выберите язык",
         "settings": "⚙️ Настройки"
-    },
-    "Türkçe": {
-        "title": "⭐ GameOfUs: Family Edition",
-        "subtitle": "Çocuk için oyun • Ebeveyn için destek • Her ikisi için gelişim",
-        "profile": "👤 Profil",
-        "enter_age": "Yaşı giriniz:",
-        "group_label": "📌 Grup:",
-        "tab_child": "👦 Çocuk / Kahraman Alanı",
-        "tab_parent": "👨‍👩‍👧 Ebeveyn / Rehber Paneli",
-        "hello_hero": "Merhaba, Kahraman! 👋",
-        "stars_label": "⭐ Yıldızların:",
-        "level_label": "🏆 Seviye:",
-        "xp_label": "✨ XP:",
-        "energy_label": "⚡ Enerjin:",
-        "energy_plus": "🔋 Enerji Artır (+2)",
-        "energy_minus": "🪫 Yoruldum (-2)",
-        "mood_title": "💭 Bugün nasıl hissediyorsun?",
-        "mood_happy": "😃 Mutlu",
-        "mood_calm": "🧘 Sakin",
-        "mood_tired": "😴 Yorgun",
-        "mood_sad": "😔 Üzgün",
-        "mood_angry": "😡 Kızgın",
-        "mood_note_placeholder": "Duygunuzla ilgili küçük bir not ekleyin (isteğe bağlı):",
-        "save_mood": "💾 Duyguyu Kaydet",
-        "mood_saved": "Duygu kaydedildi! 🌿",
-        "urge_title": "🌊 Urge Surfing — Dalgayı Yakala",
-        "urge_button": "⏱️ Dalgayı geçiştir (10 sn duraklat)",
-        "urge_spinner": "Dalga geçiyor... Derin nefes al... 🌬️",
-        "urge_success": "✅ Harika! Dalga geçti!",
-        "missions_title": "📋 Bugünkü Görevler",
-        "completed": "✅ Tamamlandı",
-        "do_mission": "Tamamla",
-        "rewards_title": "🎁 Ödül Mağazası",
-        "rewards_locked_msg": "🔒 **Ödüller sadece Cuma ve Pazar günleri arasında alınabilir!** Şimdilik yıldız topla. ✨",
-        "claim_reward": "Al",
-        "locked_button": "🔒 Kilitli",
-        "reward_requested": "🎉 İstek gönderildi!",
-        "no_stars": "Yeterli yıldız yok!",
-        "pending_rewards": "⏳ Bekleyen Ödüllerin",
-        "preparing_reward": "Ebeveyn bu ödülü hazırlıyor!",
-        "parent_panel": "👨‍👩‍‍👧 Ebeveyn / Rehber Paneli",
-        "level_up": "🎉 Seviye {} ulaşıldı!",
-        "bonus_stars": "⭐ Hediye Yıldız Ver",
-        "bonus_added": "+{} ⭐ eklendi!",
-        "requested_rewards_parent": "🎁 İstenen Ödüller",
-        "no_pending_rewards": "🎉 Bekleyen ödül yok.",
-        "mark_done": "✅ Tamamlandı",
-        "cant_do": "⚠️ Yapılamıyor",
-        "mood_history": "📜 Duygu Geçmişi",
-        "no_moods": "Henüz duygu kaydı yok.",
-        "add_mission": "➕ Yeni Görev Ekle",
-        "mission_title_input": "Görev Başlığı:",
-        "mission_desc_input": "Açıklama:",
-        "add_mission_btn": "➕ Görev Ekle",
-        "mission_added": "Görev eklendi!",
-        "reset_day": "🔄 Günü Sıfırla",
-        "reset_success": "Günlük görevler yenilendi!",
-        "select_language": "🌐 Dil Seçin",
-        "settings": "⚙️ Ayarlar"
-    },
-    "中文": {
-        "title": "⭐ GameOfUs: 家庭版",
-        "subtitle": "孩子的游戏 • 父母的助力 • 共同的成长",
-        "profile": "👤 个人资料",
-        "enter_age": "输入年龄：",
-        "group_label": "📌 组别：",
-        "tab_child": "👦 英雄 / 孩子空间",
-        "tab_parent": "👨‍👩‍👧 父母 / 导师面板",
-        "hello_hero": "你好，小英雄！👋",
-        "stars_label": "⭐ 你的星星：",
-        "level_label": "🏆 等级：",
-        "xp_label": "✨ 经验值 (XP)：",
-        "energy_label": "⚡ 你的体力：",
-        "energy_plus": "🔋 补充体力 (+2)",
-        "energy_minus": "🪫 感到累了 (-2)",
-        "mood_title": "💭 你今天感觉怎么样？",
-        "mood_happy": "😃 开心",
-        "mood_calm": "🧘 平静",
-        "mood_tired": "😴 疲惫",
-        "mood_sad": "😔 难过",
-        "mood_angry": "😡 生气",
-        "mood_note_placeholder": "写下你的心情笔记（选填）：",
-        "save_mood": "💾 保存心情",
-        "mood_saved": "心情已记录！🌿",
-        "urge_title": "🌊 冲浪体验 — 战胜冲动",
-        "urge_button": "⏱️ 跨越冲动（暂停10秒）",
-        "urge_spinner": "冲动正在退去... 深呼吸... 🌬️",
-        "urge_success": "✅ 太棒了！冲动已平息！",
-        "missions_title": "📋 今日任务",
-        "completed": "✅ 已完成",
-        "do_mission": "去完成",
-        "rewards_title": "🎁 奖励商店",
-        "rewards_locked_msg": "🔒 **奖励兑换仅在周五至周日开放！** 现在先积累星星吧。✨",
-        "claim_reward": "兑换",
-        "locked_button": "🔒 未解锁",
-        "reward_requested": "🎉 申请已发送！",
-        "no_stars": "星星数量不足！",
-        "pending_rewards": "⏳ 待兑换的奖励",
-        "preparing_reward": "家长正在为你准备这项奖励！",
-        "parent_panel": "👨‍👩‍👧 父母 / 导师控制台",
-        "level_up": "🎉 升到了第 {} 级！",
-        "bonus_stars": "⭐ 赠送奖励星星",
-        "bonus_added": "已添加 +{} ⭐！",
-        "requested_rewards_parent": "🎁 申请中的奖励",
-        "no_pending_rewards": "🎉 暂无待处理的奖励。",
-        "mark_done": "✅ 已完成",
-        "cant_do": "⚠️ 无法完成",
-        "mood_history": "📜 心情历史记录",
-        "no_moods": "暂无心情记录。",
-        "add_mission": "➕ 添加新任务",
-        "mission_title_input": "任务名称：",
-        "mission_desc_input": "任务描述：",
-        "add_mission_btn": "➕ 添加任务",
-        "mission_added": "任务添加成功！",
-        "reset_day": "🔄 重置当天任务",
-        "reset_success": "每日任务已刷新！",
-        "select_language": "🌐 选择语言",
-        "settings": "⚙️ 设置"
-    },
-    "日本語": {
-        "title": "⭐ GameOfUs: ファミリーエディション",
-        "subtitle": "子どものためのゲーム • 親のためのサポート • 共に育む未来",
-        "profile": "👤 プロフィール",
-        "enter_age": "年齢を入力:",
-        "group_label": "📌 グループ:",
-        "tab_child": "👦 ヒーロー / 子どもエリア",
-        "tab_parent": "👨‍👩‍👧 保護者 / メンターパネル",
-        "hello_hero": "こんにちは、ヒーロー！ 👋",
-        "stars_label": "⭐ 集めたスター:",
-        "level_label": "🏆 レベル:",
-        "xp_label": "✨ 経験値 (XP):",
-        "energy_label": "⚡ 現在の体力:",
-        "energy_plus": "🔋 体力回復 (+2)",
-        "energy_minus": "🪫 疲れた (-2)",
-        "mood_title": "💭 今日はどんな気分ですか？",
-        "mood_happy": "😃 楽しい",
-        "mood_calm": "🧘 穏やか",
-        "mood_tired": "😴 疲れた",
-        "mood_sad": "😔 悲しい",
-        "mood_angry": "😡 怒っている",
-        "mood_note_placeholder": "今の気持ちを書きみましょう（任意）:",
-        "save_mood": "💾 気分を保存",
-        "mood_saved": "記録しました！ 🌿",
-        "urge_title": "🌊 衝動サーフィン — 波を乗り越えよう",
-        "urge_button": "⏱ 波をやり過ごす（10秒間ストップ）",
-        "urge_spinner": "波が引いていきます... 深呼吸しましょう... 🌬️",
-        "urge_success": "✅ よくできました！波が去りました！",
-        "missions_title": "📋 今日のミッション",
-        "completed": "✅ 達成済み",
-        "do_mission": "挑戦する",
-        "rewards_title": "🎁 ご褒美ストア",
-        "rewards_locked_msg": "🔒 **ご褒美の交換は金曜日から日曜日まで可能です！** 今はスターを貯めましょう。✨",
-        "claim_reward": "交換する",
-        "locked_button": "🔒 ロック中",
-        "reward_requested": "🎉 リクエストを送信しました！",
-        "no_stars": "スターが足りません！",
-        "pending_rewards": "⏳ 準備中のご褒美",
-        "preparing_reward": "保護者がご褒美を準備しています！",
-        "parent_panel": "👨‍👩‍👧 保護者 / メンターパネル",
-        "level_up": "🎉 レベル {} に上がりました！",
-        "bonus_stars": "⭐ ボーナススターをあげる",
-        "bonus_added": "+{} ⭐ 追加されました！",
-        "requested_rewards_parent": "🎁 リクエストされたご褒美",
-        "no_pending_rewards": "🎉 保留中のご褒美はありません。",
-        "mark_done": "✅ 完了",
-        "cant_do": "⚠️ 実行不可",
-        "mood_history": "📜 感情の履歴",
-        "no_moods": "まだ記録がありません。",
-        "add_mission": "➕ 新しいミッションを追加",
-        "mission_title_input": "ミッションのタイトル:",
-        "mission_desc_input": "説明:",
-        "add_mission_btn": "➕ ミッション追加",
-        "mission_added": "ミッションを追加しました！",
-        "reset_day": "🔄 日付のリセット",
-        "reset_success": "デイリーミッションが更新されました！",
-        "select_language": "🌐 言語を選択",
-        "settings": "⚙️ 設定"
     }
 }
 
@@ -451,8 +337,7 @@ if st.session_state.last_active_date != today_str:
 # 👤 გვერდითა მენიუ (SIDEBAR)
 st.sidebar.header(f"⚙️ {t('settings')}")
 
-# ენის არჩევა
-language_list = ["ქართული", "English", "Русский", "Türkçe", "中文", "日本語"]
+language_list = ["ქართული", "English", "Русский"]
 lang_index = language_list.index(st.session_state.language) if st.session_state.language in language_list else 0
 
 selected_lang = st.sidebar.selectbox(
@@ -547,7 +432,7 @@ with tab1:
 
     st.divider()
 
-    # 📋 მისიები (აქ გადაეცემა არჩეული ენა)
+    # 📋 მისიები
     st.subheader(f"{t('missions_title')} ({age_group_name})")
     current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age, lang=st.session_state.language) + st.session_state.custom_missions
     
@@ -568,10 +453,10 @@ with tab1:
 
     st.divider()
 
-    # 🎁 ჯილდოების მაღაზია + 📅 დღეების გრაფიკი
+    # 🎁 ჯილდოების მაღაზია
     st.subheader(t("rewards_title"))
-    weekday = datetime.now().weekday()  # 0=ორშ, 4=პარ, 5=შაბ, 6=კვ
-    is_weekend_window = weekday in [4, 5, 6]  # პარასკევი, შაბათი, კვირა
+    weekday = datetime.now().weekday()
+    is_weekend_window = weekday in [4, 5, 6]
 
     if not is_weekend_window:
         st.info(t("rewards_locked_msg"))
@@ -615,7 +500,7 @@ with tab2:
 
     st.divider()
 
-    # ⭐ ბონუს ვარსკვლავების ჩარიცხვა
+    # ⭐ ბონუს ვარსკვლავები
     st.subheader(t("bonus_stars"))
     col_b1, col_b2, col_b3 = st.columns(3)
     with col_b1:
