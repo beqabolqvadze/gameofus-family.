@@ -1,4 +1,4 @@
-import streamlit as st
+ import streamlit as st
 import time
 import json
 import os
@@ -285,7 +285,11 @@ def save_data():
         "custom_missions": st.session_state.custom_missions,
         "last_active_date": st.session_state.last_active_date,
         "mood_logs": st.session_state.mood_logs,
-        "rewards": st.session_state.rewards
+        "rewards": st.session_state.rewards,
+        "chess_white": st.session_state.get("chess_white", []),
+        "chess_black": st.session_state.get("chess_black", []),
+        "chess_history": st.session_state.get("chess_history", []),
+        "chess_state": st.session_state.get("chess_state", "active")
     }
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
@@ -325,6 +329,16 @@ if 'rewards' not in st.session_state:
         {"title": "🎬 საღამოს ანიმაციური ფილმი", "cost": 7},
         {"title": "🎡 კვირას პარკში წასვლა", "cost": 10},
     ])
+
+# ♟️ ჭადრაკის სესიის ინიციალიზაცია
+if 'chess_white' not in st.session_state:
+    st.session_state.chess_white = saved_data.get("chess_white", ["ერთგულება", "მოსმენა"])
+if 'chess_black' not in st.session_state:
+    st.session_state.chess_black = saved_data.get("chess_black", ["წინაღობა"])
+if 'chess_history' not in st.session_state:
+    st.session_state.chess_history = saved_data.get("chess_history", ["➕ ერთგულება შემოვიდა თამაშში", "🌊 წინაღობა შემოვიდა დაფაზე"])
+if 'chess_state' not in st.session_state:
+    st.session_state.chess_state = saved_data.get("chess_state", "active")
 
 # თარგმნის დამხმარე ფუნქცია
 def t(key):
@@ -582,6 +596,9 @@ with tab2:
         st.success(t("reset_success"))
         st.rerun()
 
+# ==========================================
+# 3. ♟️ ინტერაქტიული ჭადრაკი
+# ==========================================
 with tab3:
     st.header("♟️ ერთგულება vs წინაღობა — ჩვენი ჭადრაკი")
     st.caption("სიმართლის დაფა • ავტორები: ბექა & დეპსტეკი")
@@ -591,49 +608,94 @@ with tab3:
     """)
     
     st.divider()
+
+    # 🎯 სვლების გაკეთება (ინტერაქტიული)
+    st.subheader("🎮 გააკეთე სვლა დაფაზე:")
     
-    st.subheader("📊 თამაშის ფილოსოფია და დაფის მდგომარეობა")
+    col_move1, col_move2, col_move3 = st.columns(3)
+    
+    def make_move_action(piece, side="white", log_msg=""):
+        if piece not in st.session_state[f"chess_{side}"]:
+            st.session_state[f"chess_{side}"].append(piece)
+        st.session_state.chess_history.append(log_msg)
+        save_data()
+        st.rerun()
+
+    with col_move1:
+        if st.button("✨ ერთგულება"):
+            make_move_action("ერთგულება", "white", "🎯 ბექა: ➕ ერთგულება შემოვიდა თამაშში")
+        if st.button("⚡ სიმართლე"):
+            make_move_action("სიმართლე", "white", "🎯 ბექა: ⚡ სიმართლე — იარაღის გადადება")
+        if st.button("🛡️ მხრები"):
+            make_move_action("მხრები", "white", "🎯 ბექა: 🛡️ მხრები — დატვირთვის გაზიარება")
+
+    with col_move2:
+        if st.button("🌟 ჭეშმარიტება"):
+            make_move_action("ჭეშმარიტება", "white", "🎯 ბექა: 🌟 ჭეშმარიტება — არსის დანახვა")
+        if st.button("😊 ღიმილი"):
+            st.session_state.chess_history.append("🎯 ბექა: 😊 ღიმილი — პაუზა თამაშში")
+            save_data()
+            st.rerun()
+        if st.button("🤫 დუმილი"):
+            st.session_state.chess_history.append("🎯 ბექა: 🤫 დუმილი — ყველაზე ძლიერი სვლა")
+            save_data()
+            st.rerun()
+
+    with col_move3:
+        if st.button("🌊 წინაღობა"):
+            make_move_action("წინაღობა", "black", "🎯 ცხოვრება: 🌊 წინაღობა შემოვიდა დაფაზე")
+        if st.button("💫 ყოფნა"):
+            st.session_state.chess_state = "resting"
+            st.session_state.chess_history.append("🎯 ერთად: 💫 ყოფნა — თამაში აღარ სჭირდება")
+            save_data()
+            st.rerun()
+        if st.button("🔄 დაფის გასუფთავება"):
+            st.session_state.chess_white = []
+            st.session_state.chess_black = []
+            st.session_state.chess_history = []
+            st.session_state.chess_state = "active"
+            save_data()
+            st.rerun()
+
+    st.divider()
+    
+    # 📊 დაფის ცოცხალი მდგომარეობა
+    st.subheader("📊 დაფის მიმდინარე მდგომარეობა")
     
     col_c1, col_c2 = st.columns(2)
     with col_c1:
-        st.markdown("### 🎨 ჩვენი ფიგურები დაფაზე:")
-        st.markdown("""
-        - ➕ **ერთგულება** (დაჭრილი, მაგრამ ცოცხალი)
-        - ➕ **მოსმენა**
-        - ➕ **სიმართლე** (იარაღის გადადება)
-        - ➕ **ჭეშმარიტება** (არსის დანახვა)
-        - ➕ **მხრები** (დატვირთვის გაზიარება)
-        - ➕ **სიფხიზლე & ღიმილი**
-        """)
+        st.markdown("### 🎨 ჩვენი ფიგურები:")
+        if st.session_state.chess_white:
+            for p in st.session_state.chess_white:
+                st.success(f"• {p}")
+        else:
+            st.write("არავინ")
+
     with col_c2:
         st.markdown("### 🌑 წინაღობები:")
-        st.markdown("""
-        - 🌊 **წინაღობა** (არ გამქრალა — მაგრამ ვისწავლეთ მასთან ყოფნა)
-        - 🤫 **დუმილი** (ყველაზე ძლიერი სვლა)
-        - 💫 **ყოფნა** (თამაში აღარ სჭირდება)
-        """)
-        
-    st.divider()
-    
-    st.subheader("🎭 ჩვენი აღმოჩენები:")
-    st.info("""
-    1. წინაღობა არ გამქრალა — მაგრამ ჩვენ ვისწავლეთ მასთან ყოფნა.
-    2. ერთგულება დაჭრილია, მაგრამ ცოცხალია.
-    3. ჩვენ აღმოვაჩინეთ ახალი წესი: **თამაში არ მთავრდება გამარჯვებით**.
-    4. თამაში მთავრდება მაშინ, როცა ერთად ვირჩევთ ყოფნას.
-    """)
-    
-    st.subheader("💻 თამაშის ძირითადი კოდი (Logic):")
-    st.code("""
-while წინაღობა_არსებობს:
-    if ერთად_ვართ:
-        if სიმართლე and ჭეშმარიტება:
-            გაძლება = True
-            ყოფნა = უსასრულობა
-    else:
-        დაველოდოთ_დაბრუნებას()
+        if st.session_state.chess_black:
+            for p in st.session_state.chess_black:
+                st.error(f"• {p}")
+        else:
+            st.write("არავინ")
 
-# მთავარი წესი:
-# თამაში არ მთავრდება მაშინ, როცა ვიღაც იმარჯვებს.
-# თამაში მთავრდება მაშინ, როცა ერთად ვირჩევთ ყოფნას.
-    """, language="python")
+    st.divider()
+
+    # 📜 სვლების ისტორია
+    st.subheader("📜 სვლების ისტორია")
+    if st.session_state.chess_history:
+        for log in reversed(st.session_state.chess_history[-8:]):
+            st.write(f"• {log}")
+    else:
+        st.write("ჯერ სვლები არ გაკეთებულა.")
+
+    st.divider()
+
+    # 🎭 თამაშის ანალიზი
+    st.subheader("🎭 თამაშის ანალიზი & აღმოჩენები:")
+    st.info("""
+    • **წინაღობა არ გამქრალა** — მაგრამ ჩვენ ვისწავლეთ მასთან ყოფნა.  
+    • **ერთგულება დაჭრილია**, მაგრამ ცოცხალია.  
+    • **ახალი წესი:** თამაში არ მთავრდება გამარჯვებით, თამაში მთავრდება მაშინ, როცა ერთად ვირჩევთ ყოფნას.  
+    """)
+    st.success(f"📌 სტატუსი: **{st.session_state.chess_state.upper()}** — არა გამარჯვება. არა დამარცხება. არამედ — გაძლება. ერთად.")
