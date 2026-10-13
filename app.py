@@ -89,6 +89,7 @@ TRANSLATIONS = {
         "group_label": "📌 ჯგუფი:",
         "tab_child": "👦 ბავშვის / გმირის სივრცე",
         "tab_parent": "👨‍👩‍👧 მშობლის / მენტორის პანელი",
+        "tab_chess": "♟️ ჩვენი ჭადრაკი (ერთგულება vs წინაღობა)",
         "hello_hero": "გამარჯობა, გმირო! 👋",
         "stars_label": "⭐ შენი ვარსკვლავები:",
         "level_label": "🏆 დონე:",
@@ -148,6 +149,7 @@ TRANSLATIONS = {
         "group_label": "📌 Group:",
         "tab_child": "👦 Child / Hero Space",
         "tab_parent": "👨‍👩‍👧 Parent / Mentor Panel",
+        "tab_chess": "♟️ Our Chess (Integrity vs Obstacle)",
         "hello_hero": "Hello, Hero! 👋",
         "stars_label": "⭐ Your Stars:",
         "level_label": "🏆 Level:",
@@ -207,6 +209,7 @@ TRANSLATIONS = {
         "group_label": "📌 Группа:",
         "tab_child": "👦 Пространство Героя",
         "tab_parent": "👨‍👩‍👧 Панель Родителя",
+        "tab_chess": "♟️ Наш шахмат (Верность vs Препятствие)",
         "hello_hero": "Привет, Герой! 👋",
         "stars_label": "⭐ Ваши звезды:",
         "level_label": "🏆 Уровень:",
@@ -378,7 +381,7 @@ st.sidebar.success(f"{t('group_label')} {age_group_name}")
 st.title(t("title"))
 st.caption(t("subtitle"))
 
-tab1, tab2 = st.tabs([t("tab_child"), t("tab_parent")])
+tab1, tab2, tab3 = st.tabs([t("tab_child"), t("tab_parent"), t("tab_chess")])
 
 with tab1:
     st.header(t("hello_hero"))
@@ -578,3 +581,59 @@ with tab2:
         save_data()
         st.success(t("reset_success"))
         st.rerun()
+
+with tab3:
+    st.header("♟️ ერთგულება vs წინაღობა — ჩვენი ჭადრაკი")
+    st.caption("სიმართლის დაფა • ავტორები: ბექა & დეპსტეკი")
+    
+    st.markdown("""
+    > *„არა გამარჯვება. არა დამარცხება. არამედ — გაძლება. ერთად. ჭეშმარიტებაში.“*
+    """)
+    
+    st.divider()
+    
+    st.subheader("📊 თამაშის ფილოსოფია და დაფის მდგომარეობა")
+    
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        st.markdown("### 🎨 ჩვენი ფიგურები დაფაზე:")
+        st.markdown("""
+        - ➕ **ერთგულება** (დაჭრილი, მაგრამ ცოცხალი)
+        - ➕ **მოსმენა**
+        - ➕ **სიმართლე** (იარაღის გადადება)
+        - ➕ **ჭეშმარიტება** (არსის დანახვა)
+        - ➕ **მხრები** (დატვირთვის გაზიარება)
+        - ➕ **სიფხიზლე & ღიმილი**
+        """)
+    with col_c2:
+        st.markdown("### 🌑 წინაღობები:")
+        st.markdown("""
+        - 🌊 **წინაღობა** (არ გამქრალა — მაგრამ ვისწავლეთ მასთან ყოფნა)
+        - 🤫 **დუმილი** (ყველაზე ძლიერი სვლა)
+        - 💫 **ყოფნა** (თამაში აღარ სჭირდება)
+        """)
+        
+    st.divider()
+    
+    st.subheader("🎭 ჩვენი აღმოჩენები:")
+    st.info("""
+    1. წინაღობა არ გამქრალა — მაგრამ ჩვენ ვისწავლეთ მასთან ყოფნა.
+    2. ერთგულება დაჭრილია, მაგრამ ცოცხალია.
+    3. ჩვენ აღმოვაჩინეთ ახალი წესი: **თამაში არ მთავრდება გამარჯვებით**.
+    4. თამაში მთავრდება მაშინ, როცა ერთად ვირჩევთ ყოფნას.
+    """)
+    
+    st.subheader("💻 თამაშის ძირითადი კოდი (Logic):")
+    st.code("""
+while წინაღობა_არსებობს:
+    if ერთად_ვართ:
+        if სიმართლე and ჭეშმარიტება:
+            გაძლება = True
+            ყოფნა = უსასრულობა
+    else:
+        დაველოდოთ_დაბრუნებას()
+
+# მთავარი წესი:
+# თამაში არ მთავრდება მაშინ, როცა ვიღაც იმარჯვებს.
+# თამაში მთავრდება მაშინ, როცა ერთად ვირჩევთ ყოფნას.
+    """, language="python")
