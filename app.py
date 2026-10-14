@@ -129,8 +129,8 @@ TRANSLATIONS = {
         "no_pending_rewards": "🎉 მომლოდინე ჯილდოები არ არის.",
         "mark_done": "✅ შესრულდა",
         "cant_do": "⚠️ ვერ ვასრულებ",
-        "mood_history": "📜 ემოციების ისტორია",
-        "no_moods": "ჯერ ემოციების ჩანაწერი არ არის.",
+        "mood_history": "📜 ემოციების და პროგრესის ისტორია",
+        "no_moods": "ჯერ ჩანაწერები არ არის.",
         "add_mission": "➕ ახალი მისიის დამატება",
         "mission_title_input": "მისიის სათაური:",
         "mission_desc_input": "აღწერა:",
@@ -189,8 +189,8 @@ TRANSLATIONS = {
         "no_pending_rewards": "🎉 No pending rewards.",
         "mark_done": "✅ Done",
         "cant_do": "⚠️ Can't fulfill",
-        "mood_history": "📜 Mood History",
-        "no_moods": "No mood records yet.",
+        "mood_history": "📜 Progress & Mood History",
+        "no_moods": "No records yet.",
         "add_mission": "➕ Add New Mission",
         "mission_title_input": "Mission title:",
         "mission_desc_input": "Description:",
@@ -249,7 +249,7 @@ TRANSLATIONS = {
         "no_pending_rewards": "🎉 Нет ожидающих наград.",
         "mark_done": "✅ Выполнено",
         "cant_do": "⚠️ Не могу выполнить",
-        "mood_history": "📜 История настроения",
+        "mood_history": "📜 История прогресса",
         "no_moods": "Записей пока нет.",
         "add_mission": "➕ Добавить новое задание",
         "mission_title_input": "Название задания:",
@@ -286,7 +286,8 @@ def save_data():
         "last_active_date": st.session_state.last_active_date,
         "mood_logs": st.session_state.mood_logs,
         "rewards": st.session_state.rewards,
-        "chess_history": st.session_state.get("chess_history", [])
+        "chess_history": st.session_state.get("chess_history", []),
+        "daily_history": st.session_state.get("daily_history", [])
     }
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
@@ -328,14 +329,21 @@ if 'rewards' not in st.session_state:
     ])
 if 'chess_history' not in st.session_state:
     st.session_state.chess_history = saved_data.get("chess_history", [])
+if 'daily_history' not in st.session_state:
+    st.session_state.daily_history = saved_data.get("daily_history", [])
 
 # თარგმნის დამხმარე ფუნქცია
 def t(key):
     lang = st.session_state.language
     return TRANSLATIONS.get(lang, TRANSLATIONS["ქართული"]).get(key, key)
 
-# 🗓️ ავტომატური დღის გადატვირთვა
+# 🗓️ ავტომატური დღის გადატვირთვა და ისტორიის შენახვა
 if st.session_state.last_active_date != today_str:
+    # წინა დღის შეჯამების ჩაწერა ისტორიაში
+    summary_entry = f"📅 {st.session_state.last_active_date} | შესრულებული მისიები: {len(st.session_state.completed_missions)} | ⭐ ვარსკვლავები: {st.session_state.stars} | ✨ XP: {st.session_state.xp}"
+    st.session_state.daily_history.append(summary_entry)
+    
+    # დღიური მისიების გასუფთავება ახალი დღისთვის
     st.session_state.completed_missions.clear()
     st.session_state.last_active_date = today_str
     save_data()
@@ -390,6 +398,9 @@ with tab1:
     st.header(t("hello_hero"))
     st.info(f"{t('stars_label')} **{st.session_state.stars} ⭐** | {t('level_label')} **{st.session_state.level}** | {t('xp_label')} **{st.session_state.xp}/100**")
     
+    # პროგრეს ბარი დონისთვის
+    st.progress(st.session_state.xp / 100, text=f"პროგრესი შემდეგ დონემდე: {st.session_state.xp}%")
+
     st.subheader(f"{t('energy_label')} {st.session_state.energy}/10")
     col1, col2 = st.columns(2)
     with col1:
@@ -438,8 +449,8 @@ with tab1:
 
     st.divider()
 
-    # 📋 მისიები
-    st.subheader(f"{t('missions_title')} ({age_group_name})")
+    # 📋 მისიები (ავტომატურად განახლებადი)
+    st.subheader(f"{t('missions_title')} ({today_str}) — {age_group_name}")
     current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age, lang=st.session_state.language) + st.session_state.custom_missions
     
     for m in current_missions:
@@ -454,6 +465,12 @@ with tab1:
                     st.session_state.completed_missions.add(m['id'])
                     st.session_state.xp += 20
                     st.session_state.stars += 1
+                    
+                    # დონის ავტომატური მატება თუ XP >= 100
+                    if st.session_state.xp >= 100:
+                        st.session_state.level += 1
+                        st.session_state.xp -= 100
+                    
                     save_data()
                     st.rerun()
 
@@ -554,12 +571,19 @@ with tab2:
 
     st.divider()
 
-    # 📜 ემოციების ისტორია
+    # 📜 ემოციების და დღეების ისტორია
     st.subheader(t("mood_history"))
+    if st.session_state.daily_history:
+        st.markdown("### 🗓️ დღიური პროგრესი:")
+        for day_item in reversed(st.session_state.daily_history[-5:]):
+            st.info(day_item)
+            
     if st.session_state.mood_logs:
+        st.markdown("### 💭 ემოციების ჩანაწერები:")
         for log in reversed(st.session_state.mood_logs[-5:]):
             st.write(f"• {log}")
-    else:
+    
+    if not st.session_state.daily_history and not st.session_state.mood_logs:
         st.write(t("no_moods"))
 
     st.divider()
@@ -578,7 +602,7 @@ with tab2:
 
     st.divider()
 
-    # 🔄 დღის გადატვირთვა
+    # 🔄 დღის ხელოვნურად გადატვირთვა
     if st.button(t("reset_day")):
         st.session_state.completed_missions.clear()
         save_data()
@@ -644,6 +668,11 @@ with tab3:
         st.session_state.chess_history.append(log_text)
         st.session_state.xp += 10
         st.session_state.stars += 1
+        
+        if st.session_state.xp >= 100:
+            st.session_state.level += 1
+            st.session_state.xp -= 100
+            
         save_data()
         st.success(f"🎯 სვლა გაკეთებულია! +10 XP | +1 ⭐\n\n**{selected_move}**: {move_desc}")
         st.balloons()
