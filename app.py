@@ -339,11 +339,8 @@ def t(key):
 
 # 🗓️ ავტომატური დღის გადატვირთვა და ისტორიის შენახვა
 if st.session_state.last_active_date != today_str:
-    # წინა დღის შეჯამების ჩაწერა ისტორიაში
     summary_entry = f"📅 {st.session_state.last_active_date} | შესრულებული მისიები: {len(st.session_state.completed_missions)} | ⭐ ვარსკვლავები: {st.session_state.stars} | ✨ XP: {st.session_state.xp}"
     st.session_state.daily_history.append(summary_entry)
-    
-    # დღიური მისიების გასუფთავება ახალი დღისთვის
     st.session_state.completed_missions.clear()
     st.session_state.last_active_date = today_str
     save_data()
@@ -398,7 +395,6 @@ with tab1:
     st.header(t("hello_hero"))
     st.info(f"{t('stars_label')} **{st.session_state.stars} ⭐** | {t('level_label')} **{st.session_state.level}** | {t('xp_label')} **{st.session_state.xp}/100**")
     
-    # პროგრეს ბარი დონისთვის
     st.progress(st.session_state.xp / 100, text=f"პროგრესი შემდეგ დონემდე: {st.session_state.xp}%")
 
     st.subheader(f"{t('energy_label')} {st.session_state.energy}/10")
@@ -416,7 +412,6 @@ with tab1:
 
     st.divider()
 
-    # 📝 ემოციების დღიური
     st.subheader(t("mood_title"))
     col_e1, col_e2, col_e3, col_e4, col_e5 = st.columns(5)
     selected_mood = None
@@ -436,7 +431,6 @@ with tab1:
 
     st.divider()
 
-    # 🌊 Urge Surfing
     st.subheader(t("urge_title"))
     if st.button(t("urge_button")):
         with st.spinner(t("urge_spinner")):
@@ -449,7 +443,6 @@ with tab1:
 
     st.divider()
 
-    # 📋 მისიები (ავტომატურად განახლებადი)
     st.subheader(f"{t('missions_title')} ({today_str}) — {age_group_name}")
     current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age, lang=st.session_state.language) + st.session_state.custom_missions
     
@@ -466,7 +459,6 @@ with tab1:
                     st.session_state.xp += 20
                     st.session_state.stars += 1
                     
-                    # დონის ავტომატური მატება თუ XP >= 100
                     if st.session_state.xp >= 100:
                         st.session_state.level += 1
                         st.session_state.xp -= 100
@@ -476,7 +468,6 @@ with tab1:
 
     st.divider()
 
-    # 🎁 ჯილდოების მაღაზია
     st.subheader(t("rewards_title"))
     weekday = datetime.now().weekday()
     is_weekend_window = weekday in [4, 5, 6]
@@ -523,7 +514,6 @@ with tab2:
 
     st.divider()
 
-    # ⭐ ბონუს ვარსკვლავები
     st.subheader(t("bonus_stars"))
     col_b1, col_b2, col_b3 = st.columns(3)
     with col_b1:
@@ -547,7 +537,6 @@ with tab2:
 
     st.divider()
 
-    # 🎁 მოთხოვნილი ჯილდოები
     st.subheader(t("requested_rewards_parent"))
     if not st.session_state.requested_rewards:
         st.write(t("no_pending_rewards"))
@@ -571,7 +560,6 @@ with tab2:
 
     st.divider()
 
-    # 📜 ემოციების და დღეების ისტორია
     st.subheader(t("mood_history"))
     if st.session_state.daily_history:
         st.markdown("### 🗓️ დღიური პროგრესი:")
@@ -588,7 +576,6 @@ with tab2:
 
     st.divider()
 
-    # ➕ ახალი მისიის დამატება
     st.subheader(t("add_mission"))
     new_m_title = st.text_input(t("mission_title_input"))
     new_m_desc = st.text_input(t("mission_desc_input"))
@@ -602,7 +589,6 @@ with tab2:
 
     st.divider()
 
-    # 🔄 დღის ხელოვნურად გადატვირთვა
     if st.button(t("reset_day")):
         st.session_state.completed_missions.clear()
         save_data()
@@ -611,22 +597,29 @@ with tab2:
 
 with tab3:
     st.header("♟️ შინაგანი ჭადრაკი — დამკვირვებლის პოზიცია")
-    st.caption("რეალური გამოწვევები • გააზრებული სვლები • სიმშვიდის შენარჩუნება")
+    st.caption("ნათელი დღეები • კრიზისული გამოწვევები • გააზრებული სვლები • სიმშვიდე")
 
     st.markdown("""
     > *„თამაში არ მთავრდება გამარჯვებით ან დამარცხებით. თამაში მთავრდება მაშინ, როცა შენ ირჩევ პაუზას, სიმართლეს და შინაგან სიფხიზლეს.“*
     """)
     st.divider()
 
-    st.subheader("1. 🌑 აირჩიე წინაღობა / გამოწვევა:")
-    obstacle = st.selectbox(
-        "რა გამოწვევას აწყდები დღეს?",
+    st.subheader("1. 🧭 აირჩიე შინაგანი მდგომარეობა / გამოწვევა:")
+    state_choice = st.selectbox(
+        "როგორ მდგომარეობაში ხარ ახლა?",
         [
-            "🔥 ძველი ჩვევის ძახილი / ცდუნება",
-            "🏃 იმპულსური რეაქცია / მოუთმენლობა",
-            "👥 სხვების სიამოვნება (People-pleasing)",
-            "😮‍💨 დაღლილობა და ყურადღების გაფანტვა",
-            "💭 მომავლის შფოთვა / უაზრო ფიქრები"
+            # 🟢 მწვანე / ნათელი დღეები
+            "🟢 ✨ შინაგანი სიმშვიდე და სიცხადე",
+            "🟢 ⚡ მაღალი ენერგია და ენთუზიაზმი",
+            "🟢 🌱 მადლიერების და კმაყოფილების განცდა",
+            "🟢 🎯 ღრმა ფოკუსი და ნაკადის (Flow) მდგომარეობა",
+            
+            # 🌑 კრიზისული / რთული დღეები
+            "🌑 🔥 ძველი ჩვევის ძახილი / ცდუნება",
+            "🌑 🏃 იმპულსური რეაქცია / მოუთმენლობა",
+            "🌑 👥 სხვების სიამოვნება (People-pleasing)",
+            "🌑 😮‍💨 დაღლილობა და ყურადღების გაფანტვა",
+            "🌑 💭 მომავლის შფოთვა / უაზრო ფიქრები"
         ]
     )
 
@@ -646,6 +639,9 @@ with tab3:
         if st.button("⏱️ 2-წუთიანი წესი"):
             selected_move = "2-წუთიანი წესი"
             move_desc = "ვიწყებ პატარა ნაბიჯით 2 წუთით და ვაჩერებ შინაგან წინააღმდეგობას."
+        if st.button("🌱 მადლიერება"):
+            selected_move = "მადლიერების დაფიქსირება"
+            move_desc = "ვაცნობიერებ ამ ნათელ მომენტს და შინაგანად ვამბობ მადლობას."
 
     with col_ch2:
         if st.button("🤫 დუმილი & პაუზა"):
@@ -654,6 +650,9 @@ with tab3:
         if st.button("👑 საკუთარი თავის პრიორიტეტი"):
             selected_move = "საკუთარი თავის პრიორიტეტი"
             move_desc = "უარს ვამბობ სხვების სიამოვნებაზე, ჩემი შინაგანი მშვიდობის სასარგებლოდ."
+        if st.button("⚡ ენერგიის ინვესტიცია"):
+            selected_move = "ენერგიის სწორი მიმართვა"
+            move_desc = "ამ მაღალ ენერგიას ვახმართ მნიშვნელოვან მიზანს ან საქმეს."
 
     with col_ch3:
         if st.button("👁️ დამკვირვებლის თვალი"):
@@ -662,9 +661,12 @@ with tab3:
         if st.button("🌟 ჭეშმარიტება"):
             selected_move = "ჭეშმარიტება & ყოფნა"
             move_desc = "ვიღებ მომენტს ისეთს, როგორიც არის, ბრძოლის გარეშე."
+        if st.button("⚓ რესურსის დაგროვება"):
+            selected_move = "რესურსის დასამახსოვრება (Anchoring)"
+            move_desc = "ვიმახსოვრებ ამ კარგ შეგრძნებას, რომ რთულ დღეებში საყრდენად გამომადგეს."
 
     if selected_move:
-        log_text = f"{today_str} | 🌑 {obstacle} ➔ 🛡️ **{selected_move}**: *{move_desc}*"
+        log_text = f"{today_str} | ♟️ {state_choice} ➔ 🛡️ **{selected_move}**: *{move_desc}*"
         st.session_state.chess_history.append(log_text)
         st.session_state.xp += 10
         st.session_state.stars += 1
@@ -679,9 +681,9 @@ with tab3:
 
     st.divider()
 
-    st.subheader("📜 შინაგანი ბრძოლების & გაძლების დღიური")
+    st.subheader("📜 შინაგანი ბრძოლების & ნათელი დღეების ისტორია")
     if st.session_state.chess_history:
         for history_item in reversed(st.session_state.chess_history[-6:]):
             st.info(f"• {history_item}")
     else:
-        st.write("ჯერ სვლები არ გაგიკეთებია. აირჩიე წინაღობა და გააკეთე პირველი სვლა!")
+        st.write("ჯერ სვლები არ გაგიკეთებია. აირჩიე მდგომარეობა და გააკეთე პირველი სვლა!")
