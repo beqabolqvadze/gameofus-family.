@@ -287,7 +287,8 @@ def save_data():
         "mood_logs": st.session_state.mood_logs,
         "rewards": st.session_state.rewards,
         "chess_history": st.session_state.get("chess_history", []),
-        "daily_history": st.session_state.get("daily_history", [])
+        "daily_history": st.session_state.get("daily_history", []),
+        "medallion_flips": st.session_state.get("medallion_flips", 0) # ახალი მონაცემი მედალიონისთვის
     }
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
@@ -331,6 +332,8 @@ if 'chess_history' not in st.session_state:
     st.session_state.chess_history = saved_data.get("chess_history", [])
 if 'daily_history' not in st.session_state:
     st.session_state.daily_history = saved_data.get("daily_history", [])
+if 'medallion_flips' not in st.session_state:
+    st.session_state.medallion_flips = saved_data.get("medallion_flips", 0)
 
 # თარგმნის დამხმარე ფუნქცია
 def t(key):
@@ -384,6 +387,39 @@ else:
 st.sidebar.success(f"{t('group_label')} {age_group_name}")
 
 # ==========================================
+# 🪙 მედალიონის კომპონენტი
+# ==========================================
+def render_medallion():
+    """მედალიონის ფუნქცია, რომელიც ორივე ტაბში გამოჩნდება"""
+    st.markdown("---")
+    st.subheader("🪙 მადლიერების მედალიონი")
+    
+    # ვიზუალური ეფექტი - დამოკიდებულია იმაზე, თუ რამდენჯერ გადატრიალდა
+    if st.session_state.medallion_flips % 2 == 0:
+        current_side = "🪙 **მადლიერი ვარ**"
+        button_text = "🔄 მედალიონის გადატრიალება"
+        st.info(f"{current_side} — მადლიერი ვარ ყველაფრისთვის, რაც მაქვს.")
+    else:
+        current_side = "✨ **მადლიერებისთვის**"
+        button_text = "🔄 უკან დაბრუნება"
+        st.success(f"{current_side} — მადლიერი ვარ იმისთვის, რომ შემიძლია ვიყო მადლიერი.")
+
+    if st.button(button_text, key="medallion_btn"):
+        st.session_state.medallion_flips += 1
+        # ჯილდო გადატრიალებისთვის (მხოლოდ პირველ ჯერზე დღეში, ან ყოველ ჯერზე)
+        # აქ ვაძლევთ ყოველ ჯერზე, რომ სტიმული იყოს
+        st.session_state.xp += 5
+        st.session_state.stars += 1
+        
+        if st.session_state.xp >= 100:
+            st.session_state.level += 1
+            st.session_state.xp -= 100
+            
+        save_data()
+        st.balloons()
+        st.rerun()
+
+# ==========================================
 # მთავარი ინტერფეისი
 # ==========================================
 st.title(t("title"))
@@ -410,6 +446,10 @@ with tab1:
             save_data()
             st.rerun()
 
+    st.divider()
+
+    # 🪙 მედალიონი ბავშვის სივრცეში
+    render_medallion()
     st.divider()
 
     st.subheader(t("mood_title"))
@@ -512,6 +552,10 @@ with tab2:
         save_data()
         st.success(t("level_up").format(st.session_state.level))
 
+    st.divider()
+    
+    # 🪙 მედალიონი მშობლის სივრცეშიც
+    render_medallion()
     st.divider()
 
     st.subheader(t("bonus_stars"))
