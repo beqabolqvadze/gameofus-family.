@@ -330,7 +330,6 @@ def save_data():
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 # სესიის ინიციალიზაცია (მომხმარებლის შეცვლისას მონაცემები განახლდება)
-# თუ მომხმარებელი შეიცვალა, ჩვენ უნდა ჩავტვირთოთ მისი მონაცემები
 if 'current_user' not in st.session_state or st.session_state.current_user != safe_username:
     st.session_state.current_user = safe_username
     saved_data = load_data()
@@ -434,12 +433,12 @@ with tab1:
     st.subheader(f"{t('energy_label')} {st.session_state.energy}/10")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button(t("energy_plus")):
+        if st.button(t("energy_plus"), key=f"energy_plus_{safe_username}"):
             st.session_state.energy = min(10, st.session_state.energy + 2)
             save_data()
             st.rerun()
     with col2:
-        if st.button(t("energy_minus")):
+        if st.button(t("energy_minus"), key=f"energy_minus_{safe_username}"):
             st.session_state.energy = max(1, st.session_state.energy - 2)
             save_data()
             st.rerun()
@@ -447,20 +446,20 @@ with tab1:
     st.divider()
 
     # 🪙 მედალიონი ბავშვის სივრცეში
-    render_medallion("medallion_btn_child")
+    render_medallion(f"medallion_btn_child_{safe_username}")
     st.divider()
 
     st.subheader(t("mood_title"))
     col_e1, col_e2, col_e3, col_e4, col_e5 = st.columns(5)
     selected_mood = None
-    if col_e1.button("😃"): selected_mood = t("mood_happy")
-    if col_e2.button("🧘"): selected_mood = t("mood_calm")
-    if col_e3.button("😴"): selected_mood = t("mood_tired")
-    if col_e4.button("😔"): selected_mood = t("mood_sad")
-    if col_e5.button("😡"): selected_mood = t("mood_angry")
+    if col_e1.button("😃", key=f"mood_happy_{safe_username}"): selected_mood = t("mood_happy")
+    if col_e2.button("🧘", key=f"mood_calm_{safe_username}"): selected_mood = t("mood_calm")
+    if col_e3.button("😴", key=f"mood_tired_{safe_username}"): selected_mood = t("mood_tired")
+    if col_e4.button("😔", key=f"mood_sad_{safe_username}"): selected_mood = t("mood_sad")
+    if col_e5.button("😡", key=f"mood_angry_{safe_username}"): selected_mood = t("mood_angry")
 
-    mood_note = st.text_input(t("mood_note_placeholder"), key="mood_input")
-    if st.button(t("save_mood")):
+    mood_note = st.text_input(t("mood_note_placeholder"), key=f"mood_input_{safe_username}")
+    if st.button(t("save_mood"), key=f"save_mood_{safe_username}"):
         if selected_mood or mood_note:
             entry = f"{today_str} | {selected_mood if selected_mood else '📝'} {mood_note}"
             st.session_state.mood_logs.append(entry)
@@ -470,7 +469,7 @@ with tab1:
     st.divider()
 
     st.subheader(t("urge_title"))
-    if st.button(t("urge_button")):
+    if st.button(t("urge_button"), key=f"urge_btn_{safe_username}"):
         with st.spinner(t("urge_spinner")):
             time.sleep(10)
         st.success(t("urge_success"))
@@ -492,7 +491,7 @@ with tab1:
             if m['id'] in st.session_state.completed_missions:
                 st.success(t("completed"))
             else:
-                if st.button(t("do_mission"), key=m['id']):
+                if st.button(t("do_mission"), key=f"do_{m['id']}_{safe_username}"):
                     st.session_state.completed_missions.add(m['id'])
                     st.session_state.xp += 20
                     st.session_state.stars += 1
@@ -519,7 +518,7 @@ with tab1:
             st.markdown(f"**{r['title']}** — `{r['cost']} ⭐`")
         with col_r2:
             if is_weekend_window:
-                if st.button(t("claim_reward"), key=f"req_{idx}"):
+                if st.button(t("claim_reward"), key=f"req_{idx}_{safe_username}"):
                     if st.session_state.stars >= r['cost']:
                         st.session_state.stars -= r['cost']
                         st.session_state.requested_rewards.append(r['title'])
@@ -529,7 +528,7 @@ with tab1:
                     else:
                         st.error(t("no_stars"))
             else:
-                st.button(t("locked_button"), key=f"req_dis_{idx}", disabled=True)
+                st.button(t("locked_button"), key=f"req_dis_{idx}_{safe_username}", disabled=True)
 
     if st.session_state.requested_rewards:
         st.subheader(t("pending_rewards"))
@@ -553,25 +552,25 @@ with tab2:
     st.divider()
     
     # 🪙 მედალიონი მშობლის სივრცეშიც
-    render_medallion("medallion_btn_parent")
+    render_medallion(f"medallion_btn_parent_{safe_username}")
     st.divider()
 
     st.subheader(t("bonus_stars"))
     col_b1, col_b2, col_b3 = st.columns(3)
     with col_b1:
-        if st.button("➕ 1 ⭐"):
+        if st.button("➕ 1 ⭐", key=f"bonus1_{safe_username}"):
             st.session_state.stars += 1
             save_data()
             st.success(t("bonus_added").format(1))
             st.rerun()
     with col_b2:
-        if st.button("➕ 3 ⭐"):
+        if st.button("➕ 3 ⭐", key=f"bonus3_{safe_username}"):
             st.session_state.stars += 3
             save_data()
             st.success(t("bonus_added").format(3))
             st.rerun()
     with col_b3:
-        if st.button("➕ 5 ⭐"):
+        if st.button("➕ 5 ⭐", key=f"bonus5_{safe_username}"):
             st.session_state.stars += 5
             save_data()
             st.success(t("bonus_added").format(5))
@@ -588,12 +587,12 @@ with tab2:
             with col_req1:
                 st.markdown(f"👉 **{req_title}**")
             with col_req2:
-                if st.button(t("mark_done"), key=f"done_{idx}"):
+                if st.button(t("mark_done"), key=f"done_{idx}_{safe_username}"):
                     st.session_state.requested_rewards.pop(idx)
                     save_data()
                     st.rerun()
             with col_req3:
-                if st.button(t("cant_do"), key=f"fail_{idx}"):
+                if st.button(t("cant_do"), key=f"fail_{idx}_{safe_username}"):
                     st.session_state.requested_rewards.pop(idx)
                     st.session_state.stars += 2
                     st.session_state.parent_penalties += 1
@@ -619,9 +618,9 @@ with tab2:
     st.divider()
 
     st.subheader(t("add_mission"))
-    new_m_title = st.text_input(t("mission_title_input"))
-    new_m_desc = st.text_input(t("mission_desc_input"))
-    if st.button(t("add_mission_btn")):
+    new_m_title = st.text_input(t("mission_title_input"), key=f"new_m_title_{safe_username}")
+    new_m_desc = st.text_input(t("mission_desc_input"), key=f"new_m_desc_{safe_username}")
+    if st.button(t("add_mission_btn"), key=f"add_mission_btn_{safe_username}"):
         if new_m_title and new_m_desc:
             new_id = f"custom_{len(st.session_state.custom_missions) + 1}"
             st.session_state.custom_missions.append({"title": new_m_title, "desc": new_m_desc, "id": new_id})
@@ -631,7 +630,7 @@ with tab2:
 
     st.divider()
 
-    if st.button(t("reset_day")):
+    if st.button(t("reset_day"), key=f"reset_day_{safe_username}"):
         st.session_state.completed_missions.clear()
         save_data()
         st.success(t("reset_success"))
@@ -662,7 +661,8 @@ with tab3:
             "🌑 👥 სხვების სიამოვნება (People-pleasing)",
             "🌑 😮‍💨 დაღლილობა და ყურადღების გაფანტვა",
             "🌑 💭 მომავლის შფოთვა / უაზრო ფიქრები"
-        ]
+        ],
+        key=f"state_choice_{safe_username}"
     )
 
     st.divider()
@@ -675,35 +675,35 @@ with tab3:
     move_desc = ""
 
     with col_ch1:
-        if st.button("🌊 Urge Surfing"):
+        if st.button("🌊 Urge Surfing", key=f"ch_urg_{safe_username}"):
             selected_move = "Urge Surfing (ტალღაზე სერფინგი)"
             move_desc = "არ ვებრძვი ტალღას, უბრალოდ ვაკვირდები, როგორ ჩაივლის 10 წამში."
-        if st.button("⏱️ 2-წუთიანი წესი"):
+        if st.button("⏱️ 2-წუთიანი წესი", key=f"ch_2min_{safe_username}"):
             selected_move = "2-წუთიანი წესი"
             move_desc = "ვიწყებ პატარა ნაბიჯით 2 წუთით და ვაჩერებ შინაგან წინააღმდეგობას."
-        if st.button("🌱 მადლიერება"):
+        if st.button("🌱 მადლიერება", key=f"ch_grat_{safe_username}"):
             selected_move = "მადლიერების დაფიქსირება"
             move_desc = "ვაცნობიერებ ამ ნათელ მომენტს და შინაგანად ვამბობ მადლობას."
 
     with col_ch2:
-        if st.button("🤫 დუმილი & პაუზა"):
+        if st.button("🤫 დუმილი & პაუზა", key=f"ch_silence_{safe_username}"):
             selected_move = "დუმილი & პაუზა"
             move_desc = "არ ვპასუხობ რეაქტიულად. ვაკეთებ ღრმა ჩასუნთქვას."
-        if st.button("👑 საკუთარი თავის პრიორიტეტი"):
+        if st.button("👑 საკუთარი თავის პრიორიტეტი", key=f"ch_self_{safe_username}"):
             selected_move = "საკუთარი თავის პრიორიტეტი"
             move_desc = "უარს ვამბობ სხვების სიამოვნებაზე, ჩემი შინაგანი მშვიდობის სასარგებლოდ."
-        if st.button("⚡ ენერგიის ინვესტიცია"):
+        if st.button("⚡ ენერგიის ინვესტიცია", key=f"ch_energy_{safe_username}"):
             selected_move = "ენერგიის სწორი მიმართვა"
             move_desc = "ამ მაღალ ენერგიას ვახმართ მნიშვნელოვან მიზანს ან საქმეს."
 
     with col_ch3:
-        if st.button("👁️ დამკვირვებლის თვალი"):
+        if st.button("👁️ დამკვირვებლის თვალი", key=f"ch_observer_{safe_username}"):
             selected_move = "დამკვირვებლის პოზიცია"
             move_desc = "მე არ ვარ ჩემი ფიქრი, მე ვარ ის, ვინც ამ ფიქრს აკვირდება."
-        if st.button("🌟 ჭეშმარიტება"):
+        if st.button("🌟 ჭეშმარიტება", key=f"ch_truth_{safe_username}"):
             selected_move = "ჭეშმარიტება & ყოფნა"
             move_desc = "ვიღებ მომენტს ისეთს, როგორიც არის, ბრძოლის გარეშე."
-        if st.button("⚓ რესურსის დაგროვება"):
+        if st.button("⚓ რესურსის დაგროვება", key=f"ch_anchor_{safe_username}"):
             selected_move = "რესურსის დასამახსოვრება (Anchoring)"
             move_desc = "ვიმახსოვრებ ამ კარგ შეგრძნებას, რომ რთულ დღეებში საყრდენად გამომადგეს."
 
