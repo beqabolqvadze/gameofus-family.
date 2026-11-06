@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# 1. ასაკობრივი მისიების მოდული (ჩაშენებული)
+# 1. ასაკობრივი მისიების მოდული
 # ==========================================
 class AgeBasedMissions:
     @staticmethod
@@ -55,7 +55,7 @@ class AgeBasedMissions:
                     {"id": "m2", "title": "🚴 Физическая активность", "desc": "Кардио или зал от 30 минут."},
                     {"id": "m3", "title": "🧠 Самоанализ", "desc": "Проследите за своими мыслями."}
                 ]
-        else: # ქართული (Default)
+        else: # ქართული
             if 6 <= age <= 9:
                 return [
                     {"id": "m1", "title": "🏃 დილის ვარჯიში", "desc": "გააკეთე 5 წუთიანი გაჭიმვა."},
@@ -76,7 +76,7 @@ class AgeBasedMissions:
                 ]
 
 # ==========================================
-# 2. ენების ლექსიკონი (TRANSLATIONS)
+# 2. ენების ლექსიკონი
 # ==========================================
 TRANSLATIONS = {
     "ქართული": {
@@ -269,7 +269,9 @@ def t(key):
     lang = st.session_state.get("language", "ქართული")
     return TRANSLATIONS.get(lang, TRANSLATIONS["ქართული"]).get(key, key)
 
-# 👤 გვერდითა მენიუ (SIDEBAR) - ენა და მომხმარებელი
+# ==========================================
+# 3. 🪪 მომხმარებლის სახელის შეყვანა და ფაილის მართვა
+# ==========================================
 st.sidebar.header(f"⚙️ {t('settings')}")
 
 language_list = ["ქართული", "English", "Русский"]
@@ -284,30 +286,88 @@ selected_lang = st.sidebar.selectbox(
 
 if selected_lang != current_lang:
     st.session_state.language = selected_lang
-    st.rerun() # გადატვირთვა, რომ ენა მთლიანად შეიცვალოს
+    st.rerun()
 
 st.sidebar.divider()
-
-# 🪪 მომხმარებლის სახელის შეყვანა
 st.sidebar.header(t("profile"))
+
 username = st.sidebar.text_input(t("username_label"), value="ბექა")
 
-# მომხმარებლის სახელის გასუფთავება (რომ ფაილის სახელი ლამაზი იყოს)
+# სახელის გასუფთავება (რომ ფაილის სახელი უსაფრთხო იყოს)
 safe_username = "".join(c for c in username if c.isalnum() or c in (' ', '_')).rstrip()
 if not safe_username:
     safe_username = "unknown_user"
 
 DB_FILE = f"user_data_{safe_username}.json"
 
-# მონაცემების ჩატვირთვა (მომხმარებლის მიხედვით)
-def load_data():
+# ==========================================
+# 4. 🔒 "დაზღვევის" ბლოკი (KeyError-ის პრევენცია)
+# ==========================================
+# ეს ბლოკი აუცილებლად ქმნის ყველა ცვლადს, თუ ისინი ჯერ არ არსებობს.
+# ეს არის პასუხი შენს KeyError-ზე.
+
+if 'language' not in st.session_state:
+    st.session_state.language = "ქართული"
+if 'xp' not in st.session_state:
+    st.session_state.xp = 0
+if 'level' not in st.session_state:
+    st.session_state.level = 1
+if 'stars' not in st.session_state:
+    st.session_state.stars = 0
+if 'energy' not in st.session_state:
+    st.session_state.energy = 5
+if 'age' not in st.session_state:
+    st.session_state.age = 26
+if 'completed_missions' not in st.session_state:
+    st.session_state.completed_missions = set()
+if 'requested_rewards' not in st.session_state:
+    st.session_state.requested_rewards = []
+if 'parent_penalties' not in st.session_state:
+    st.session_state.parent_penalties = 0
+if 'custom_missions' not in st.session_state:
+    st.session_state.custom_missions = []
+if 'mood_logs' not in st.session_state:
+    st.session_state.mood_logs = []
+if 'last_active_date' not in st.session_state:
+    st.session_state.last_active_date = datetime.now().strftime("%Y-%m-%d")
+if 'rewards' not in st.session_state:
+    st.session_state.rewards = [
+        {"title": "🚲 30 წუთი ველოსიპედით სეირნობა", "cost": 3},
+        {"title": "🍦 საყვარელი ნაყინი", "cost": 5},
+        {"title": "🎬 საღამოს ანიმაციური ფილმი", "cost": 7},
+        {"title": "🎡 კვირას პარკში წასვლა", "cost": 10},
+    ]
+if 'chess_history' not in st.session_state:
+    st.session_state.chess_history = []
+if 'daily_history' not in st.session_state:
+    st.session_state.daily_history = []
+if 'medallion_flips' not in st.session_state:
+    st.session_state.medallion_flips = 0
+
+# ==========================================
+# 5. მონაცემების ჩატვირთვა/შენახვა (მომხმარებლის მიხედვით)
+# ==========================================
+def load_user_data():
     if os.path.exists(DB_FILE):
         with open(DB_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
+            data = json.load(f)
+            st.session_state.xp = data.get("xp", 0)
+            st.session_state.level = data.get("level", 1)
+            st.session_state.stars = data.get("stars", 0)
+            st.session_state.energy = data.get("energy", 5)
+            st.session_state.age = data.get("age", 26)
+            st.session_state.completed_missions = set(data.get("completed_missions", []))
+            st.session_state.requested_rewards = data.get("requested_rewards", [])
+            st.session_state.parent_penalties = data.get("parent_penalties", 0)
+            st.session_state.custom_missions = data.get("custom_missions", [])
+            st.session_state.mood_logs = data.get("mood_logs", [])
+            st.session_state.last_active_date = data.get("last_active_date", datetime.now().strftime("%Y-%m-%d"))
+            st.session_state.rewards = data.get("rewards", st.session_state.rewards)
+            st.session_state.chess_history = data.get("chess_history", [])
+            st.session_state.daily_history = data.get("daily_history", [])
+            st.session_state.medallion_flips = data.get("medallion_flips", 0)
 
-# მონაცემების შენახვა (მომხმარებლის მიხედვით)
-def save_data():
+def save_user_data():
     data = {
         "xp": st.session_state.xp,
         "level": st.session_state.level,
@@ -322,55 +382,34 @@ def save_data():
         "last_active_date": st.session_state.last_active_date,
         "mood_logs": st.session_state.mood_logs,
         "rewards": st.session_state.rewards,
-        "chess_history": st.session_state.get("chess_history", []),
-        "daily_history": st.session_state.get("daily_history", []),
-        "medallion_flips": st.session_state.get("medallion_flips", 0)
+        "chess_history": st.session_state.chess_history,
+        "daily_history": st.session_state.daily_history,
+        "medallion_flips": st.session_state.medallion_flips
     }
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# სესიის ინიციალიზაცია (მომხმარებლის შეცვლისას მონაცემები განახლდება)
+# თუ მომხმარებელი შეიცვალა, ჩავტვირთოთ მისი მონაცემები
 if 'current_user' not in st.session_state or st.session_state.current_user != safe_username:
     st.session_state.current_user = safe_username
-    saved_data = load_data()
-    
-    st.session_state.xp = saved_data.get("xp", 0)
-    st.session_state.level = saved_data.get("level", 1)
-    st.session_state.stars = saved_data.get("stars", 0)
-    st.session_state.energy = saved_data.get("energy", 5)
-    st.session_state.age = saved_data.get("age", 26)
-    st.session_state.completed_missions = set(saved_data.get("completed_missions", []))
-    st.session_state.requested_rewards = saved_data.get("requested_rewards", [])
-    st.session_state.parent_penalties = saved_data.get("parent_penalties", 0)
-    st.session_state.custom_missions = saved_data.get("custom_missions", [])
-    st.session_state.mood_logs = saved_data.get("mood_logs", [])
-    st.session_state.last_active_date = saved_data.get("last_active_date", datetime.now().strftime("%Y-%m-%d"))
-    st.session_state.rewards = saved_data.get("rewards", [
-        {"title": "🚲 30 წუთი ველოსიპედით სეირნობა", "cost": 3},
-        {"title": "🍦 საყვარელი ნაყინი", "cost": 5},
-        {"title": "🎬 საღამოს ანიმაციური ფილმი", "cost": 7},
-        {"title": "🎡 კვირას პარკში წასვლა", "cost": 10},
-    ])
-    st.session_state.chess_history = saved_data.get("chess_history", [])
-    st.session_state.daily_history = saved_data.get("daily_history", [])
-    st.session_state.medallion_flips = saved_data.get("medallion_flips", 0)
+    load_user_data()
 
 today_str = datetime.now().strftime("%Y-%m-%d")
 
-# 🗓️ ავტომატური დღის გადატვირთვა და ისტორიის შენახვა
+# 🗓️ დღის ავტომატური გადატვირთვა
 if st.session_state.last_active_date != today_str:
-    summary_entry = f"📅 {st.session_state.last_active_date} | შესრულებული მისიები: {len(st.session_state.completed_missions)} | ⭐ ვარსკვლავები: {st.session_state.stars} | ✨ XP: {st.session_state.xp}"
+    summary_entry = f"📅 {st.session_state.last_active_date} | მისიები: {len(st.session_state.completed_missions)} | ⭐ {st.session_state.stars} | ✨ XP: {st.session_state.xp}"
     st.session_state.daily_history.append(summary_entry)
     st.session_state.completed_missions.clear()
     st.session_state.last_active_date = today_str
-    save_data()
+    save_user_data()
 
 # ასაკის შეყვანა
 age = st.sidebar.number_input(t("enter_age"), min_value=6, max_value=99, value=int(st.session_state.age), step=1)
 
 if age != st.session_state.age:
     st.session_state.age = age
-    save_data()
+    save_user_data()
 
 if 6 <= age <= 9:
     age_group_name = "6-9 წელი (პატარა მკვლევარი)"
@@ -386,23 +425,19 @@ else:
 st.sidebar.success(f"{t('group_label')} {age_group_name}")
 
 # ==========================================
-# 🪙 მედალიონის კომპონენტი
+# 6. 🪙 მედალიონის კომპონენტი
 # ==========================================
 def render_medallion(unique_key):
-    """მედალიონის ფუნქცია, რომელიც ორივე ტაბში გამოჩნდება"""
     st.markdown("---")
     st.subheader("🪙 მადლიერების მედალიონი")
     
     if st.session_state.medallion_flips % 2 == 0:
-        current_side = "🪙 **მადლიერი ვარ**"
+        st.info("🪙 **მადლიერი ვარ** — მადლიერი ვარ ყველაფრისთვის, რაც მაქვს.")
         button_text = "🔄 მედალიონის გადატრიალება"
-        st.info(f"{current_side} — მადლიერი ვარ ყველაფრისთვის, რაც მაქვს.")
     else:
-        current_side = "✨ **მადლიერებისთვის**"
+        st.success("✨ **მადლიერებისთვის** — მადლიერი ვარ იმისთვის, რომ შემიძლია ვიყო მადლიერი.")
         button_text = "🔄 უკან დაბრუნება"
-        st.success(f"{current_side} — მადლიერი ვარ იმისთვის, რომ შემიძლია ვიყო მადლიერი.")
 
-    # აი აქ არის გასწორებული - unique_key
     if st.button(button_text, key=unique_key):
         st.session_state.medallion_flips += 1
         st.session_state.xp += 5
@@ -412,12 +447,12 @@ def render_medallion(unique_key):
             st.session_state.level += 1
             st.session_state.xp -= 100
             
-        save_data()
+        save_user_data()
         st.balloons()
         st.rerun()
 
 # ==========================================
-# მთავარი ინტერფეისი
+# 7. მთავარი ინტერფეისი
 # ==========================================
 st.title(t("title"))
 st.caption(t("subtitle"))
@@ -427,43 +462,40 @@ tab1, tab2, tab3 = st.tabs([t("tab_child"), t("tab_parent"), t("tab_chess")])
 with tab1:
     st.header(t("hello_hero"))
     st.info(f"{t('stars_label')} **{st.session_state.stars} ⭐** | {t('level_label')} **{st.session_state.level}** | {t('xp_label')} **{st.session_state.xp}/100**")
-    
-    st.progress(st.session_state.xp / 100, text=f"პროგრესი შემდეგ დონემდე: {st.session_state.xp}%")
+    st.progress(st.session_state.xp / 100, text=f"პროგრესი: {st.session_state.xp}%")
 
     st.subheader(f"{t('energy_label')} {st.session_state.energy}/10")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button(t("energy_plus"), key=f"energy_plus_{safe_username}"):
+        if st.button(t("energy_plus"), key=f"en_plus_{safe_username}"):
             st.session_state.energy = min(10, st.session_state.energy + 2)
-            save_data()
+            save_user_data()
             st.rerun()
     with col2:
-        if st.button(t("energy_minus"), key=f"energy_minus_{safe_username}"):
+        if st.button(t("energy_minus"), key=f"en_minus_{safe_username}"):
             st.session_state.energy = max(1, st.session_state.energy - 2)
-            save_data()
+            save_user_data()
             st.rerun()
 
     st.divider()
-
-    # 🪙 მედალიონი ბავშვის სივრცეში
-    render_medallion(f"medallion_btn_child_{safe_username}")
+    render_medallion(f"med_child_{safe_username}")
     st.divider()
 
     st.subheader(t("mood_title"))
     col_e1, col_e2, col_e3, col_e4, col_e5 = st.columns(5)
     selected_mood = None
-    if col_e1.button("😃", key=f"mood_happy_{safe_username}"): selected_mood = t("mood_happy")
-    if col_e2.button("🧘", key=f"mood_calm_{safe_username}"): selected_mood = t("mood_calm")
-    if col_e3.button("😴", key=f"mood_tired_{safe_username}"): selected_mood = t("mood_tired")
-    if col_e4.button("😔", key=f"mood_sad_{safe_username}"): selected_mood = t("mood_sad")
-    if col_e5.button("😡", key=f"mood_angry_{safe_username}"): selected_mood = t("mood_angry")
+    if col_e1.button("😃", key=f"m1_{safe_username}"): selected_mood = t("mood_happy")
+    if col_e2.button("🧘", key=f"m2_{safe_username}"): selected_mood = t("mood_calm")
+    if col_e3.button("😴", key=f"m3_{safe_username}"): selected_mood = t("mood_tired")
+    if col_e4.button("😔", key=f"m4_{safe_username}"): selected_mood = t("mood_sad")
+    if col_e5.button("😡", key=f"m5_{safe_username}"): selected_mood = t("mood_angry")
 
-    mood_note = st.text_input(t("mood_note_placeholder"), key=f"mood_input_{safe_username}")
+    mood_note = st.text_input(t("mood_note_placeholder"), key=f"mood_note_{safe_username}")
     if st.button(t("save_mood"), key=f"save_mood_{safe_username}"):
         if selected_mood or mood_note:
             entry = f"{today_str} | {selected_mood if selected_mood else '📝'} {mood_note}"
             st.session_state.mood_logs.append(entry)
-            save_data()
+            save_user_data()
             st.success(t("mood_saved"))
 
     st.divider()
@@ -475,7 +507,7 @@ with tab1:
         st.success(t("urge_success"))
         st.session_state.xp += 15
         st.session_state.stars += 1
-        save_data()
+        save_user_data()
         st.balloons()
 
     st.divider()
@@ -495,12 +527,10 @@ with tab1:
                     st.session_state.completed_missions.add(m['id'])
                     st.session_state.xp += 20
                     st.session_state.stars += 1
-                    
                     if st.session_state.xp >= 100:
                         st.session_state.level += 1
                         st.session_state.xp -= 100
-                    
-                    save_data()
+                    save_user_data()
                     st.rerun()
 
     st.divider()
@@ -508,7 +538,6 @@ with tab1:
     st.subheader(t("rewards_title"))
     weekday = datetime.now().weekday()
     is_weekend_window = weekday in [4, 5, 6]
-
     if not is_weekend_window:
         st.info(t("rewards_locked_msg"))
 
@@ -522,7 +551,7 @@ with tab1:
                     if st.session_state.stars >= r['cost']:
                         st.session_state.stars -= r['cost']
                         st.session_state.requested_rewards.append(r['title'])
-                        save_data()
+                        save_user_data()
                         st.success(t("reward_requested"))
                         st.rerun()
                     else:
@@ -537,7 +566,6 @@ with tab1:
 
 with tab2:
     st.header(t("parent_panel"))
-
     col_p1, col_p2, col_p3 = st.columns(3)
     col_p1.metric(label=t("level_label"), value=st.session_state.level)
     col_p2.metric(label=t("xp_label"), value=f"{st.session_state.xp} / 100")
@@ -546,33 +574,31 @@ with tab2:
     if st.session_state.xp >= 100:
         st.session_state.level += 1
         st.session_state.xp -= 100
-        save_data()
+        save_user_data()
         st.success(t("level_up").format(st.session_state.level))
 
     st.divider()
-    
-    # 🪙 მედალიონი მშობლის სივრცეშიც
-    render_medallion(f"medallion_btn_parent_{safe_username}")
+    render_medallion(f"med_parent_{safe_username}")
     st.divider()
 
     st.subheader(t("bonus_stars"))
     col_b1, col_b2, col_b3 = st.columns(3)
     with col_b1:
-        if st.button("➕ 1 ⭐", key=f"bonus1_{safe_username}"):
+        if st.button("➕ 1 ⭐", key=f"b1_{safe_username}"):
             st.session_state.stars += 1
-            save_data()
+            save_user_data()
             st.success(t("bonus_added").format(1))
             st.rerun()
     with col_b2:
-        if st.button("➕ 3 ⭐", key=f"bonus3_{safe_username}"):
+        if st.button("➕ 3 ⭐", key=f"b3_{safe_username}"):
             st.session_state.stars += 3
-            save_data()
+            save_user_data()
             st.success(t("bonus_added").format(3))
             st.rerun()
     with col_b3:
-        if st.button("➕ 5 ⭐", key=f"bonus5_{safe_username}"):
+        if st.button("➕ 5 ⭐", key=f"b5_{safe_username}"):
             st.session_state.stars += 5
-            save_data()
+            save_user_data()
             st.success(t("bonus_added").format(5))
             st.rerun()
 
@@ -589,14 +615,14 @@ with tab2:
             with col_req2:
                 if st.button(t("mark_done"), key=f"done_{idx}_{safe_username}"):
                     st.session_state.requested_rewards.pop(idx)
-                    save_data()
+                    save_user_data()
                     st.rerun()
             with col_req3:
                 if st.button(t("cant_do"), key=f"fail_{idx}_{safe_username}"):
                     st.session_state.requested_rewards.pop(idx)
                     st.session_state.stars += 2
                     st.session_state.parent_penalties += 1
-                    save_data()
+                    save_user_data()
                     st.rerun()
 
     st.divider()
@@ -606,126 +632,113 @@ with tab2:
         st.markdown("### 🗓️ დღიური პროგრესი:")
         for day_item in reversed(st.session_state.daily_history[-5:]):
             st.info(day_item)
-            
     if st.session_state.mood_logs:
         st.markdown("### 💭 ემოციების ჩანაწერები:")
         for log in reversed(st.session_state.mood_logs[-5:]):
             st.write(f"• {log}")
-    
     if not st.session_state.daily_history and not st.session_state.mood_logs:
         st.write(t("no_moods"))
 
     st.divider()
 
     st.subheader(t("add_mission"))
-    new_m_title = st.text_input(t("mission_title_input"), key=f"new_m_title_{safe_username}")
-    new_m_desc = st.text_input(t("mission_desc_input"), key=f"new_m_desc_{safe_username}")
-    if st.button(t("add_mission_btn"), key=f"add_mission_btn_{safe_username}"):
+    new_m_title = st.text_input(t("mission_title_input"), key=f"new_title_{safe_username}")
+    new_m_desc = st.text_input(t("mission_desc_input"), key=f"new_desc_{safe_username}")
+    if st.button(t("add_mission_btn"), key=f"add_btn_{safe_username}"):
         if new_m_title and new_m_desc:
-            new_id = f"custom_{len(st.session_state.custom_missions) + 1}"
+            new_id = f"custom_{len(st.session_state.custom_missions) + 1}_{safe_username}"
             st.session_state.custom_missions.append({"title": new_m_title, "desc": new_m_desc, "id": new_id})
-            save_data()
+            save_user_data()
             st.success(t("mission_added"))
             st.rerun()
 
     st.divider()
 
-    if st.button(t("reset_day"), key=f"reset_day_{safe_username}"):
+    if st.button(t("reset_day"), key=f"reset_btn_{safe_username}"):
         st.session_state.completed_missions.clear()
-        save_data()
+        save_user_data()
         st.success(t("reset_success"))
         st.rerun()
 
 with tab3:
     st.header("♟️ შინაგანი ჭადრაკი — დამკვირვებლის პოზიცია")
     st.caption("ნათელი დღეები • კრიზისული გამოწვევები • გააზრებული სვლები • სიმშვიდე")
-
-    st.markdown("""
-    > *„თამაში არ მთავრდება გამარჯვებით ან დამარცხებით. თამაში მთავრდება მაშინ, როცა შენ ირჩევ პაუზას, სიმართლეს და შინაგან სიფხიზლეს.“*
-    """)
+    st.markdown("> *„თამაში არ მთავრდება გამარჯვებით ან დამარცხებით. თამაში მთავრდება მაშინ, როცა შენ ირჩევ პაუზას, სიმართლეს და შინაგან სიფხიზლეს.“*")
     st.divider()
 
     st.subheader("1. 🧭 აირჩიე შინაგანი მდგომარეობა / გამოწვევა:")
     state_choice = st.selectbox(
         "როგორ მდგომარეობაში ხარ ახლა?",
         [
-            # 🟢 მწვანე / ნათელი დღეები
             "🟢 ✨ შინაგანი სიმშვიდე და სიცხადე",
             "🟢 ⚡ მაღალი ენერგია და ენთუზიაზმი",
             "🟢 🌱 მადლიერების და კმაყოფილების განცდა",
             "🟢 🎯 ღრმა ფოკუსი და ნაკადის (Flow) მდგომარეობა",
-            
-            # 🌑 კრიზისული / რთული დღეები
             "🌑 🔥 ძველი ჩვევის ძახილი / ცდუნება",
             "🌑 🏃 იმპულსური რეაქცია / მოუთმენლობა",
             "🌑 👥 სხვების სიამოვნება (People-pleasing)",
             "🌑 😮‍💨 დაღლილობა და ყურადღების გაფანტვა",
             "🌑 💭 მომავლის შფოთვა / უაზრო ფიქრები"
         ],
-        key=f"state_choice_{safe_username}"
+        key=f"state_{safe_username}"
     )
 
     st.divider()
-
     st.subheader("2. 🛡️ აირჩიე შენი პასუხი (დამკვირვებლის სვლა):")
     
     col_ch1, col_ch2, col_ch3 = st.columns(3)
-    
     selected_move = None
     move_desc = ""
 
     with col_ch1:
-        if st.button("🌊 Urge Surfing", key=f"ch_urg_{safe_username}"):
-            selected_move = "Urge Surfing (ტალღაზე სერფინგი)"
-            move_desc = "არ ვებრძვი ტალღას, უბრალოდ ვაკვირდები, როგორ ჩაივლის 10 წამში."
-        if st.button("⏱️ 2-წუთიანი წესი", key=f"ch_2min_{safe_username}"):
+        if st.button("🌊 Urge Surfing", key=f"c1_{safe_username}"):
+            selected_move = "Urge Surfing"
+            move_desc = "არ ვებრძვი ტალღას, ვაკვირდები, როგორ ჩაივლის."
+        if st.button("⏱️ 2-წუთიანი წესი", key=f"c2_{safe_username}"):
             selected_move = "2-წუთიანი წესი"
-            move_desc = "ვიწყებ პატარა ნაბიჯით 2 წუთით და ვაჩერებ შინაგან წინააღმდეგობას."
-        if st.button("🌱 მადლიერება", key=f"ch_grat_{safe_username}"):
-            selected_move = "მადლიერების დაფიქსირება"
-            move_desc = "ვაცნობიერებ ამ ნათელ მომენტს და შინაგანად ვამბობ მადლობას."
+            move_desc = "ვიწყებ პატარა ნაბიჯით და ვაჩერებ წინააღმდეგობას."
+        if st.button("🌱 მადლიერება", key=f"c3_{safe_username}"):
+            selected_move = "მადლიერება"
+            move_desc = "ვაცნობიერებ მომენტს და ვამბობ მადლობას."
 
     with col_ch2:
-        if st.button("🤫 დუმილი & პაუზა", key=f"ch_silence_{safe_username}"):
+        if st.button("🤫 დუმილი", key=f"c4_{safe_username}"):
             selected_move = "დუმილი & პაუზა"
-            move_desc = "არ ვპასუხობ რეაქტიულად. ვაკეთებ ღრმა ჩასუნთქვას."
-        if st.button("👑 საკუთარი თავის პრიორიტეტი", key=f"ch_self_{safe_username}"):
+            move_desc = "არ ვპასუხობ რეაქტიულად. ვსუნთქავ."
+        if st.button("👑 საკუთარი თავი", key=f"c5_{safe_username}"):
             selected_move = "საკუთარი თავის პრიორიტეტი"
-            move_desc = "უარს ვამბობ სხვების სიამოვნებაზე, ჩემი შინაგანი მშვიდობის სასარგებლოდ."
-        if st.button("⚡ ენერგიის ინვესტიცია", key=f"ch_energy_{safe_username}"):
-            selected_move = "ენერგიის სწორი მიმართვა"
-            move_desc = "ამ მაღალ ენერგიას ვახმართ მნიშვნელოვან მიზანს ან საქმეს."
+            move_desc = "ვირჩევ ჩემს მშვიდობას."
+        if st.button("⚡ ენერგია", key=f"c6_{safe_username}"):
+            selected_move = "ენერგიის ინვესტიცია"
+            move_desc = "ენერგიას ვახმართ მნიშვნელოვან საქმეს."
 
     with col_ch3:
-        if st.button("👁️ დამკვირვებლის თვალი", key=f"ch_observer_{safe_username}"):
+        if st.button("👁️ დამკვირვებელი", key=f"c7_{safe_username}"):
             selected_move = "დამკვირვებლის პოზიცია"
-            move_desc = "მე არ ვარ ჩემი ფიქრი, მე ვარ ის, ვინც ამ ფიქრს აკვირდება."
-        if st.button("🌟 ჭეშმარიტება", key=f"ch_truth_{safe_username}"):
-            selected_move = "ჭეშმარიტება & ყოფნა"
-            move_desc = "ვიღებ მომენტს ისეთს, როგორიც არის, ბრძოლის გარეშე."
-        if st.button("⚓ რესურსის დაგროვება", key=f"ch_anchor_{safe_username}"):
-            selected_move = "რესურსის დასამახსოვრება (Anchoring)"
-            move_desc = "ვიმახსოვრებ ამ კარგ შეგრძნებას, რომ რთულ დღეებში საყრდენად გამომადგეს."
+            move_desc = "მე არ ვარ ფიქრი, მე ვარ დამკვირვებელი."
+        if st.button("🌟 ჭეშმარიტება", key=f"c8_{safe_username}"):
+            selected_move = "ჭეშმარიტება"
+            move_desc = "ვიღებ მომენტს ისეთს, როგორიც არის."
+        if st.button("⚓ რესურსი", key=f"c9_{safe_username}"):
+            selected_move = "რესურსის დაგროვება"
+            move_desc = "ვიმახსოვრებ ამ შეგრძნებას რთული დღეებისთვის."
 
     if selected_move:
         log_text = f"{today_str} | ♟️ {state_choice} ➔ 🛡️ **{selected_move}**: *{move_desc}*"
         st.session_state.chess_history.append(log_text)
         st.session_state.xp += 10
         st.session_state.stars += 1
-        
         if st.session_state.xp >= 100:
             st.session_state.level += 1
             st.session_state.xp -= 100
-            
-        save_data()
+        save_user_data()
         st.success(f"🎯 სვლა გაკეთებულია! +10 XP | +1 ⭐\n\n**{selected_move}**: {move_desc}")
         st.balloons()
 
     st.divider()
-
     st.subheader("📜 შინაგანი ბრძოლების & ნათელი დღეების ისტორია")
     if st.session_state.chess_history:
         for history_item in reversed(st.session_state.chess_history[-6:]):
             st.info(f"• {history_item}")
     else:
-        st.write("ჯერ სვლები არ გაგიკეთებია. აირჩიე მდგომარეობა და გააკეთე პირველი სვლა!")
+        st.write("ჯერ სვლები არ გაგიკეთებია.")
