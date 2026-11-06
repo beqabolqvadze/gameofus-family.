@@ -11,8 +11,6 @@ st.set_page_config(
     layout="centered"
 )
 
-DB_FILE = "user_data.json"
-
 # ==========================================
 # 1. ასაკობრივი მისიების მოდული (ჩაშენებული)
 # ==========================================
@@ -139,7 +137,8 @@ TRANSLATIONS = {
         "reset_day": "🔄 დღის გადატვირთვა",
         "reset_success": "დღიური მისიები განახლდა!",
         "select_language": "🌐 აირჩიეთ ენა / Select Language",
-        "settings": "⚙️ პარამეტრები"
+        "settings": "⚙️ პარამეტრები",
+        "username_label": "👤 მომხმარებლის სახელი:"
     },
     "English": {
         "title": "⭐ GameOfUs: Family Edition",
@@ -199,7 +198,8 @@ TRANSLATIONS = {
         "reset_day": "🔄 Reset Day",
         "reset_success": "Daily missions reset!",
         "select_language": "🌐 Select Language",
-        "settings": "⚙️ Settings"
+        "settings": "⚙️ Settings",
+        "username_label": "👤 Username:"
     },
     "Русский": {
         "title": "⭐ GameOfUs: Family Edition",
@@ -259,18 +259,54 @@ TRANSLATIONS = {
         "reset_day": "🔄 Сброс дня",
         "reset_success": "Дневные задания обновлены!",
         "select_language": "🌐 Выберите язык",
-        "settings": "⚙️ Настройки"
+        "settings": "⚙️ Настройки",
+        "username_label": "👤 Имя пользователя:"
     }
 }
 
-# მონაცემების ჩატვირთვა
+# თარგმნის დამხმარე ფუნქცია
+def t(key):
+    lang = st.session_state.get("language", "ქართული")
+    return TRANSLATIONS.get(lang, TRANSLATIONS["ქართული"]).get(key, key)
+
+# 👤 გვერდითა მენიუ (SIDEBAR) - ენა და მომხმარებელი
+st.sidebar.header(f"⚙️ {t('settings')}")
+
+language_list = ["ქართული", "English", "Русский"]
+current_lang = st.session_state.get("language", "ქართული")
+lang_index = language_list.index(current_lang) if current_lang in language_list else 0
+
+selected_lang = st.sidebar.selectbox(
+    t("select_language"),
+    options=language_list,
+    index=lang_index
+)
+
+if selected_lang != current_lang:
+    st.session_state.language = selected_lang
+    st.rerun() # გადატვირთვა, რომ ენა მთლიანად შეიცვალოს
+
+st.sidebar.divider()
+
+# 🪪 მომხმარებლის სახელის შეყვანა
+st.sidebar.header(t("profile"))
+username = st.sidebar.text_input(t("username_label"), value="ბექა")
+
+# მომხმარებლის სახელის გასუფთავება (რომ ფაილის სახელი ლამაზი იყოს)
+safe_username = "".join(c for c in username if c.isalnum() or c in (' ', '_')).rstrip()
+if not safe_username:
+    safe_username = "unknown_user"
+
+DB_FILE = f"user_data_{safe_username}.json"
+
+# მონაცემების ჩატვირთვა (მომხმარებლის მიხედვით)
 def load_data():
     if os.path.exists(DB_FILE):
         with open(DB_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
-# მონაცემების შენახვა
+# მონაცემების შენახვა (მომხმარებლის მიხედვით)
 def save_data():
     data = {
         "xp": st.session_state.xp,
@@ -293,52 +329,34 @@ def save_data():
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-saved_data = load_data()
-today_str = datetime.now().strftime("%Y-%m-%d")
-
-# სესიის ინიციალიზაცია
-if 'language' not in st.session_state:
-    st.session_state.language = saved_data.get("language", "ქართული")
-if 'xp' not in st.session_state:
+# სესიის ინიციალიზაცია (მომხმარებლის შეცვლისას მონაცემები განახლდება)
+# თუ მომხმარებელი შეიცვალა, ჩვენ უნდა ჩავტვირთოთ მისი მონაცემები
+if 'current_user' not in st.session_state or st.session_state.current_user != safe_username:
+    st.session_state.current_user = safe_username
+    saved_data = load_data()
+    
     st.session_state.xp = saved_data.get("xp", 0)
-if 'level' not in st.session_state:
     st.session_state.level = saved_data.get("level", 1)
-if 'stars' not in st.session_state:
     st.session_state.stars = saved_data.get("stars", 0)
-if 'energy' not in st.session_state:
     st.session_state.energy = saved_data.get("energy", 5)
-if 'age' not in st.session_state:
     st.session_state.age = saved_data.get("age", 26)
-if 'completed_missions' not in st.session_state:
     st.session_state.completed_missions = set(saved_data.get("completed_missions", []))
-if 'requested_rewards' not in st.session_state:
     st.session_state.requested_rewards = saved_data.get("requested_rewards", [])
-if 'parent_penalties' not in st.session_state:
     st.session_state.parent_penalties = saved_data.get("parent_penalties", 0)
-if 'custom_missions' not in st.session_state:
     st.session_state.custom_missions = saved_data.get("custom_missions", [])
-if 'mood_logs' not in st.session_state:
     st.session_state.mood_logs = saved_data.get("mood_logs", [])
-if 'last_active_date' not in st.session_state:
-    st.session_state.last_active_date = saved_data.get("last_active_date", today_str)
-if 'rewards' not in st.session_state:
+    st.session_state.last_active_date = saved_data.get("last_active_date", datetime.now().strftime("%Y-%m-%d"))
     st.session_state.rewards = saved_data.get("rewards", [
         {"title": "🚲 30 წუთი ველოსიპედით სეირნობა", "cost": 3},
         {"title": "🍦 საყვარელი ნაყინი", "cost": 5},
         {"title": "🎬 საღამოს ანიმაციური ფილმი", "cost": 7},
         {"title": "🎡 კვირას პარკში წასვლა", "cost": 10},
     ])
-if 'chess_history' not in st.session_state:
     st.session_state.chess_history = saved_data.get("chess_history", [])
-if 'daily_history' not in st.session_state:
     st.session_state.daily_history = saved_data.get("daily_history", [])
-if 'medallion_flips' not in st.session_state:
     st.session_state.medallion_flips = saved_data.get("medallion_flips", 0)
 
-# თარგმნის დამხმარე ფუნქცია
-def t(key):
-    lang = st.session_state.language
-    return TRANSLATIONS.get(lang, TRANSLATIONS["ქართული"]).get(key, key)
+today_str = datetime.now().strftime("%Y-%m-%d")
 
 # 🗓️ ავტომატური დღის გადატვირთვა და ისტორიის შენახვა
 if st.session_state.last_active_date != today_str:
@@ -348,25 +366,7 @@ if st.session_state.last_active_date != today_str:
     st.session_state.last_active_date = today_str
     save_data()
 
-# 👤 გვერდითა მენიუ (SIDEBAR)
-st.sidebar.header(f"⚙️ {t('settings')}")
-
-language_list = ["ქართული", "English", "Русский"]
-lang_index = language_list.index(st.session_state.language) if st.session_state.language in language_list else 0
-
-selected_lang = st.sidebar.selectbox(
-    t("select_language"),
-    options=language_list,
-    index=lang_index
-)
-
-if selected_lang != st.session_state.language:
-    st.session_state.language = selected_lang
-    save_data()
-    st.rerun()
-
-st.sidebar.divider()
-st.sidebar.header(t("profile"))
+# ასაკის შეყვანა
 age = st.sidebar.number_input(t("enter_age"), min_value=6, max_value=99, value=int(st.session_state.age), step=1)
 
 if age != st.session_state.age:
