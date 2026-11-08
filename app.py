@@ -664,110 +664,98 @@ with tab3:
     st.divider()
 
     # ==========================================
-    # ახალი ნაწილი: მწვანე და მუქი დღეების განცალკევება
+    # 1. მდგომარეობის არჩევა (ორი ჩამოსაშლელი სია)
     # ==========================================
     st.subheader("1. 🧭 აირჩიე შენი მიმდინარე სამყარო:")
     
     col_state1, col_state2 = st.columns(2)
     
     with col_state1:
-        st.markdown("### 🌿 ნათელი დღეები")
-        st.caption("სიმშვიდე, ენერგია, მადლიერება")
-        green_state = st.radio(
-            "მწვანე მდგომარეობა:",
+        green_state = st.selectbox(
+            "🌿 ნათელი დღეები (სიმშვიდე, ენერგია)",
             [
+                "---",
                 "✨ შინაგანი სიმშვიდე და სიცხადე",
                 "⚡ მაღალი ენერგია და ენთუზიაზმი",
                 "🌱 მადლიერების და კმაყოფილების განცდა",
                 "🎯 ღრმა ფოკუსი და ნაკადის (Flow) მდგომარეობა"
             ],
-            key=f"green_state_{safe_username}",
-            index=None
+            key=f"green_state_{safe_username}"
         )
 
     with col_state2:
-        st.markdown("### 🌑 რთული დღეები")
-        st.caption("ლტოლვა, შფოთვა, დაღლილობა")
-        dark_state = st.radio(
-            "მუქი მდგომარეობა:",
+        dark_state = st.selectbox(
+            "🌑 რთული დღეები (ლტოლვა, შფოთვა)",
             [
+                "---",
                 "🔥 ძველი ჩვევის ძახილი / ცდუნება",
                 "🏃 იმპულსური რეაქცია / მოუთმენლობა",
                 "👥 სხვების სიამოვნება (People-pleasing)",
                 "😮‍💨 დაღლილობა და ყურადღების გაფანტვა",
                 "💭 მომავლის შფოთვა / უაზრო ფიქრები"
             ],
-            key=f"dark_state_{safe_username}",
-            index=None
+            key=f"dark_state_{safe_username}"
         )
 
     state_choice = None
-    if green_state:
+    if green_state != "---":
         state_choice = f"🟢 {green_state}"
-    elif dark_state:
+    elif dark_state != "---":
         state_choice = f"🌑 {dark_state}"
 
     # ==========================================
-    # 2. პასუხის არჩევა (დამოკიდებულია მდგომარეობაზე)
+    # 2. ავტომატური განმარტება (ღილაკების გარეშე)
     # ==========================================
     st.divider()
-    st.subheader("2. 🛡️ აირჩიე შენი პასუხი (დამკვირვებლის სვლა):")
     
-    selected_move = None
-    move_desc = ""
-
-    if green_state:
-        st.info("შენ ხარ ნათელ მდგომარეობაში. ეს არის დრო, რომ ეს ენერგია გამოიყენო და გააძლიერო.")
+    if state_choice:
+        st.subheader("🛡️ შენი განმარტება:")
         
-        col_ch1, col_ch2, col_ch3 = st.columns(3)
-        with col_ch1:
-            if st.button("🌱 მადლიერება", key=f"g1_{safe_username}"):
-                selected_move = "მადლიერება"
-                move_desc = "ვაცნობიერებ მომენტს და ვამბობ მადლობას."
-        with col_ch2:
-            if st.button("⚡ ენერგიის ინვესტიცია", key=f"g2_{safe_username}"):
-                selected_move = "ენერგიის ინვესტიცია"
-                move_desc = "ენერგიას ვახმართ მნიშვნელოვან საქმეს."
-        with col_ch3:
-            if st.button("👁️ დამკვირვებელი", key=f"g3_{safe_username}"):
-                selected_move = "დამკვირვებლის პოზიცია"
-                move_desc = "მე არ ვარ ფიქრი, მე ვარ დამკვირვებელი."
+        # მწვანე მდგომარეობების განმარტებები
+        if green_state != "---":
+            if "სიმშვიდე" in green_state:
+                st.success("🧘 **სიმშვიდე:** ეს არის შენი დამსახურება. დაუთმე ამ წუთს 5 წამი. უბრალოდ ისუნთქე და იგრძენი, რომ ახლა ყველაფერი რიგზეა. ტვინმა იცის, რომ უსაფრთხოდ ხარ.")
+            elif "ენერგია" in green_state:
+                st.success("⚡ **ენერგია:** ეს არის ოქროს დრო. ენერგია უნდა დახარჯო საქმეზე, რომელიც გინდა. ტვინმა მიიღოს სიგნალი: 'ვმოქმედებ, ვარ ძლიერი'.")
+            elif "მადლიერება" in green_state:
+                st.success("🌱 **მადლიერება:** შეხედე ირგვლივ. მადლობა იმისთვის, რაც ახლა გაქვს. ეს არის ყველაზე ძლიერი ანტიდოტი შფოთვის წინააღმდეგ.")
+            elif "ფოკუსი" in green_state:
+                st.success("🎯 **ფოკუსი:** შენ ხარ ნაკადში. არაფერი არ გადაგიშალოს. ტვინმა იცის, რომ ეს მდგომარეობა ძვირფასია.")
 
-    elif dark_state:
-        st.warning("რთული მდგომარეობაა. ახლა მთავარია, რომ არ იმოქმედო იმპულსურად. გამოიყენე ეს იარაღები.")
+        # მუქი მდგომარეობების განმარტებები
+        elif dark_state != "---":
+            if "ცდუნება" in dark_state:
+                st.warning("🔥 **ცდუნება:** ეს არის მხოლოდ ტალღა. ის მოვიდა და წავა. ნუ ებრძვი, უბრალოდ უყურე. ტვინმა იცის: 'მე არ ვარ ეს იმპულსი, მე ვარ დამკვირვებელი'.")
+            elif "იმპულსური" in dark_state:
+                st.warning("🏃 **იმპულსი:** გაჩერდი. სანამ რამეს იტყვი ან გააკეთებ, დაითვალე 10-მდე. ტვინმა მიიღოს სიგნალი: 'მე ვირჩევ პაუზას'.")
+            elif "People-pleasing" in dark_state:
+                st.warning("👥 **სხვების სიამოვნება:** ახლა შენი საზღვრები მნიშვნელოვანია. შენ არ ხარ ვალდებული ყველას ასიამოვნო. ტვინმა იცის: 'ჩემი მშვიდობა პირველ ადგილზეა'.")
+            elif "დაღლილობა" in dark_state:
+                st.warning("😮‍💨 **დაღლილობა:** ეს ნიშნავს, რომ დასვენება გჭირდება. ტვინმა მიიღოს სიგნალი: 'მე მაქვს უფლება დავისვენო'. დალიე წყალი, გაისეირნე ან უბრალოდ თვალები დახუჭე.")
+            elif "შფოთვა" in dark_state:
+                st.warning("💭 **შფოთვა:** ტვინი ცდილობს დაგიცვას იმისგან, რაც ჯერ არ მომხდარა. უთხარი მას: 'მე ვარ აქ, ახლა. ყველაფერი რიგზეა'. ისუნთქე ღრმად 3-ჯერ.")
+
+        st.caption("💡 *ეს განმარტება ავტომატურად გამოჩნდა შენი არჩევანის მიხედვით.*")
         
-        col_ch1, col_ch2, col_ch3 = st.columns(3)
-        with col_ch1:
-            if st.button("🌊 Urge Surfing", key=f"d1_{safe_username}"):
-                selected_move = "Urge Surfing"
-                move_desc = "არ ვებრძვი ტალღას, ვაკვირდები, როგორ ჩაივლის."
-        with col_ch2:
-            if st.button("🤫 დუმილი & პაუზა", key=f"d2_{safe_username}"):
-                selected_move = "დუმილი & პაუზა"
-                move_desc = "არ ვპასუხობ რეაქტიულად. ვსუნთქავ."
-        with col_ch3:
-            if st.button("⏱️ 2-წუთიანი წესი", key=f"d3_{safe_username}"):
-                selected_move = "2-წუთიანი წესი"
-                move_desc = "ვიწყებ პატარა ნაბიჯით და ვაჩერებ წინააღმდეგობას."
+        # XP-ს მიცემის ღილაკი (რომ თამაშის ელემენტი შენარჩუნდეს)
+        if st.button("✅ ამის გაცნობიერება (+10 XP)", key=f"ack_{safe_username}"):
+            log_text = f"{today_str} | ♟️ {state_choice} ➔ 🛡️ *გაცნობიერებულია*"
+            st.session_state.chess_history.append(log_text)
+            st.session_state.xp += 10
+            st.session_state.stars += 1
+            if st.session_state.xp >= 100:
+                st.session_state.level += 1
+                st.session_state.xp -= 100
+            save_user_data()
+            st.balloons()
+            st.rerun()
 
     else:
-        st.info("აირჩიე მდგომარეობა ზემოთ, რომ ნახო შესაბამისი ქმედებები.")
+        st.info("აირჩიე მდგომარეობა ზემოთ, რომ ნახო განმარტება.")
 
     # ==========================================
-    # 3. მოქმედების შენახვა
+    # 3. ისტორია
     # ==========================================
-    if selected_move:
-        log_text = f"{today_str} | ♟️ {state_choice} ➔ 🛡️ **{selected_move}**: *{move_desc}*"
-        st.session_state.chess_history.append(log_text)
-        st.session_state.xp += 10
-        st.session_state.stars += 1
-        if st.session_state.xp >= 100:
-            st.session_state.level += 1
-            st.session_state.xp -= 100
-        save_user_data()
-        st.success(f"🎯 სვლა გაკეთებულია! +10 XP | +1 ⭐\n\n**{selected_move}**: {move_desc}")
-        st.balloons()
-
     st.divider()
     st.subheader("📜 შინაგანი ბრძოლების & ნათელი დღეების ისტორია")
     if st.session_state.chess_history:
