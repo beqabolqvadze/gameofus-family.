@@ -17,20 +17,15 @@ st.set_page_config(
 def inject_custom_css():
     st.markdown("""
     <style>
-        /* მთავარი ფონი და ფონტი */
         .stApp {
             background-color: #FAF9F6;
             color: #2C3E50;
         }
-        
-        /* სათაურების სტილი */
         h1, h2, h3 {
             color: #1E293B !important;
             font-weight: 700 !important;
             letter-spacing: -0.02em;
         }
-
-        /* ბარათების (Cards) კონტეინერი */
         .game-card {
             background-color: #FFFFFF;
             padding: 1.25rem 1.5rem;
@@ -44,8 +39,6 @@ def inject_custom_css():
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
         }
-
-        /* გმირის სტატისტიკის პანელი */
         .hero-stats {
             display: flex;
             justify-content: space-around;
@@ -71,14 +64,11 @@ def inject_custom_css():
             color: #78350F;
             font-weight: 500;
         }
-
-        /* მადლიერების მედალიონი */
         .medallion-box {
             text-align: center;
             padding: 1.8rem 1.5rem;
             border-radius: 20px;
             margin: 1rem 0;
-            transition: all 0.3s ease;
         }
         .medallion-front {
             background: linear-gradient(135deg, #FFFDF7 0%, #FEF3C7 100%);
@@ -100,8 +90,6 @@ def inject_custom_css():
             color: #374151;
             font-style: italic;
         }
-
-        /* ღილაკების მოდერნიზება */
         .stButton > button {
             border-radius: 12px !important;
             font-weight: 600 !important;
@@ -114,8 +102,6 @@ def inject_custom_css():
             background-color: #F8FAFC !important;
             transform: scale(1.01);
         }
-
-        /* ტაბების (Tabs) სტილი */
         .stTabs [data-baseweb="tab-list"] {
             gap: 8px;
             background-color: #F1EFEA;
@@ -131,8 +117,6 @@ def inject_custom_css():
             background-color: #FFFFFF !important;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
-
-        /* შინაგანი ჭადრაკის ბარათები */
         .chess-green {
             background-color: #F0FDF4;
             border-left: 5px solid #22C55E;
@@ -244,7 +228,7 @@ TRANSLATIONS = {
         "mood_angry": "😡 გაბრაზებული",
         "mood_note_placeholder": "დაამატე პატარა ჩანაწერი შენს ემოციაზე (არასავალდებულო):",
         "save_mood": "💾 ემოციის შენახვა",
-        "mood_saved": "ემოცია ჩაინიშნა! 🌿",
+        "mood_saved": "ემოცია ჩაინიშნა და შეინახა თვის არქივში! 🌿",
         "urge_title": "🌊 Urge Surfing — იმპულსის ტალღა",
         "urge_button": "⏱️ ტალღის გადაგორება (10 წამიანი პაუზა)",
         "urge_spinner": "ტალღა გადადის... ისუნთქე ღრმად... 🌬️",
@@ -268,7 +252,7 @@ TRANSLATIONS = {
         "no_pending_rewards": "🎉 მომლოდინე ჯილდოები არ არის.",
         "mark_done": "✅ შესრულდა",
         "cant_do": "⚠️ ვერ ვასრულებ",
-        "mood_history": "📜 ემოციების და პროგრესის ისტორია",
+        "mood_history": "📜 ემოციების და პროგრესის სრული არქივი (თვის შეჯამება)",
         "no_moods": "ჯერ ჩანაწერები არ არის.",
         "add_mission": "➕ ახალი მისიის დამატება",
         "mission_title_input": "მისიის სათაური:",
@@ -305,7 +289,7 @@ TRANSLATIONS = {
         "mood_angry": "😡 Angry",
         "mood_note_placeholder": "Add a quick note about your feelings (optional):",
         "save_mood": "💾 Save Mood",
-        "mood_saved": "Mood saved! 🌿",
+        "mood_saved": "Mood saved to monthly archive! 🌿",
         "urge_title": "🌊 Urge Surfing — Ride the Wave",
         "urge_button": "⏱️ Ride the wave (10s pause)",
         "urge_spinner": "The wave is passing... breathe deeply... 🌬️",
@@ -329,7 +313,7 @@ TRANSLATIONS = {
         "no_pending_rewards": "🎉 No pending rewards.",
         "mark_done": "✅ Done",
         "cant_do": "⚠️ Can't fulfill",
-        "mood_history": "📜 Progress & Mood History",
+        "mood_history": "📜 Complete Mood & Progress Archive",
         "no_moods": "No records yet.",
         "add_mission": "➕ Add New Mission",
         "mission_title_input": "Mission title:",
@@ -366,7 +350,7 @@ TRANSLATIONS = {
         "mood_angry": "😡 Злой",
         "mood_note_placeholder": "Запишите свои мысли (необязательно):",
         "save_mood": "💾 Сохранить эмоцию",
-        "mood_saved": "Запись сохранена! 🌿",
+        "mood_saved": "Запись сохранена в архив! 🌿",
         "urge_title": "🌊 Urge Surfing — Преодолей импульс",
         "urge_button": "⏱ Переждать волну (пауза 10 сек)",
         "urge_spinner": "Волна проходит... Дышите глубже... 🌬️",
@@ -390,7 +374,7 @@ TRANSLATIONS = {
         "no_pending_rewards": "🎉 Нет ожидающих наград.",
         "mark_done": "✅ Выполнено",
         "cant_do": "⚠️ Не могу выполнить",
-        "mood_history": "📜 История прогресса",
+        "mood_history": "📜 Полный архив эмоций и прогресса",
         "no_moods": "Записей пока нет.",
         "add_mission": "➕ Добавить новое задание",
         "mission_title_input": "Название задания:",
@@ -583,7 +567,6 @@ tab1, tab2, tab3 = st.tabs([t("tab_child"), t("tab_parent"), t("tab_chess")])
 with tab1:
     st.subheader(t("hello_hero"))
     
-    # გმირის სტატისტიკის ბარათი
     st.markdown(f"""
     <div class="hero-stats">
         <div class="stat-item">
@@ -607,7 +590,6 @@ with tab1:
     
     st.progress(st.session_state.xp / 100)
 
-    # ენერგიის მართვა
     col1, col2 = st.columns(2)
     with col1:
         if st.button(t("energy_plus"), key=f"en_plus_{safe_username}", use_container_width=True):
@@ -624,7 +606,6 @@ with tab1:
     render_medallion(f"med_child_{safe_username}")
     st.divider()
 
-    # ემოციების ბლოკი (გასწორებული შენახვით)
     st.subheader(t("mood_title"))
     col_e1, col_e2, col_e3, col_e4, col_e5 = st.columns(5)
     if col_e1.button("😃", key=f"m1_{safe_username}", use_container_width=True): st.session_state.selected_mood_temp = t("mood_happy")
@@ -648,7 +629,6 @@ with tab1:
 
     st.divider()
 
-    # Urge Surfing
     st.subheader(t("urge_title"))
     if st.button(t("urge_button"), key=f"urge_btn_{safe_username}", use_container_width=True):
         with st.spinner(t("urge_spinner")):
@@ -661,7 +641,6 @@ with tab1:
 
     st.divider()
 
-    # მისიები ბარათების სახით
     st.subheader(f"{t('missions_title')} ({today_str})")
     current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age, lang=st.session_state.language) + st.session_state.custom_missions
     
@@ -689,7 +668,6 @@ with tab1:
 
     st.divider()
 
-    # ჯილდოების მაღაზია
     st.subheader(t("rewards_title"))
     weekday = datetime.now().weekday()
     is_weekend_window = weekday in [4, 5, 6]
@@ -776,26 +754,62 @@ with tab2:
 
     st.divider()
 
+    # 📜 ემოციებისა და პროგრესის სრული არქივი (გვერდებად დაყოფით / შეჯამებით)
     st.subheader(t("mood_history"))
-    if st.session_state.daily_history:
-        st.markdown("#### 🗓️ დღიური პროგრესი:")
-        for day_item in reversed(st.session_state.daily_history[-5:]):
-            st.info(day_item)
-    if st.session_state.mood_logs:
-        st.markdown("#### 💭 ემოციების ჩანაწერები:")
-        for log in reversed(st.session_state.mood_logs[-5:]):
-            st.write(f"• {log}")
-    if not st.session_state.daily_history and not st.session_state.mood_logs:
+    
+    all_moods = st.session_state.mood_logs
+    if all_moods:
+        st.markdown(f"📊 სულ შენახულია **{len(all_moods)}** ემოციის ჩანაწერი.")
+        
+        # გვერდებად დაყოფა (Pagination)
+        items_per_page = 5
+        total_pages = max(1, (len(all_moods) + items_per_page - 1) // items_per_page)
+        
+        page_num = st.slider("📄 აირჩიეთ არქივის გვერდი:", min_value=1, max_value=total_pages, value=1, key=f"mood_page_{safe_username}")
+        
+        start_idx = (page_num - 1) * items_per_page
+        end_idx = start_idx + items_per_page
+        current_page_items = list(reversed(all_moods))[start_idx:end_idx]
+        
+        st.markdown(f"*(გვერდი {page_num} / {total_pages})*")
+        for log in current_page_items:
+            st.markdown(f'<div class="game-card" style="padding: 0.7rem 1rem; margin-bottom: 0.5rem;">• {log}</div>', unsafe_allow_html=True)
+    else:
         st.write(t("no_moods"))
+
+    if st.session_state.daily_history:
+        st.markdown("#### 🗓️ წარსული დღიური შეჯამებები:")
+        for day_item in reversed(st.session_state.daily_history[-7:]):
+            st.info(day_item)
 
     st.divider()
 
-    st.subheader(t("add_mission"))
+    # მისიების მართვა და წაშლა
+    st.subheader("📋 მისიების მართვა (დამატება / წაშლა)")
+    all_current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age, lang=st.session_state.language) + st.session_state.custom_missions
+    
+    for m in all_current_missions:
+        col_m1, col_m2 = st.columns([3, 1])
+        with col_m1:
+            st.markdown(f"**{m['title']}** — *{m['desc']}*")
+        with col_m2:
+            if m['id'].startswith("custom_"):
+                if st.button("🗑️ წაშლა", key=f"del_m_{m['id']}_{safe_username}"):
+                    st.session_state.custom_missions = [cm for cm in st.session_state.custom_missions if cm['id'] != m['id']]
+                    if m['id'] in st.session_state.completed_missions:
+                        st.session_state.completed_missions.remove(m['id'])
+                    save_user_data()
+                    st.success("მისია წაიშალა!")
+                    st.rerun()
+            else:
+                st.caption("საბაზისო მისია")
+
+    st.write("")
     new_m_title = st.text_input(t("mission_title_input"), key=f"new_title_{safe_username}")
     new_m_desc = st.text_input(t("mission_desc_input"), key=f"new_desc_{safe_username}")
     if st.button(t("add_mission_btn"), key=f"add_btn_{safe_username}"):
         if new_m_title and new_m_desc:
-            new_id = f"custom_{len(st.session_state.custom_missions) + 1}_{safe_username}"
+            new_id = f"custom_{int(datetime.now().timestamp())}"
             st.session_state.custom_missions.append({"title": new_m_title, "desc": new_m_desc, "id": new_id})
             save_user_data()
             st.success(t("mission_added"))
