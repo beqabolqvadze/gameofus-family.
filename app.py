@@ -2,6 +2,7 @@ import streamlit as st
 import time
 import json
 import os
+import random
 from datetime import datetime
 
 # გვერდის კონფიგურაცია
@@ -130,6 +131,17 @@ def inject_custom_css():
             padding: 1.2rem;
             border-radius: 12px;
             color: #78350F;
+        }
+        .daily-quote-box {
+            background: #FFFBEB;
+            border-left: 5px solid #F59E0B;
+            padding: 1.2rem;
+            border-radius: 12px;
+            color: #78350F;
+            text-align: center;
+            font-style: italic;
+            font-weight: 500;
+            margin-bottom: 1.2rem;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -566,6 +578,27 @@ tab1, tab2, tab3 = st.tabs([t("tab_child"), t("tab_parent"), t("tab_chess")])
 # ---------------- TAB 1: გმირის სივრცე ----------------
 with tab1:
     st.subheader(t("hello_hero"))
+    
+    # 👇 ახალი "დღის შეხსენების" ბლოკი 👇
+    daily_quotes = [
+        "მე არ ვარ ჩემი ჩავარდნა. მე ვარ ჩემი ადგომა.",
+        "როცა ტვინი გეუბნება, რომ მარტო ხარ, გაიხსენე, რომ სადღაც არის ვიღაც, ვისაც შენი იმედი აქვს.",
+        "სიმშვიდე არ ნიშნავს იმას, რომ ყველაფერი სრულყოფილია. სიმშვიდე ნიშნავს იმას, რომ შენ აღარ ებრძვი იმას, რაც არის.",
+        "ეკლებზე სიარული რთულია, მაგრამ სწორედ ის გაძლევს ძალას, რომ ფეხზე მტკიცედ დადგე.",
+        "არ არის სავალდებულო სივრცე ცარიელი იყოს. ზოგჯერ სიცარიელე ნიშნავს, რომ შენ არ ხარ დაკავებული ცუდი აზრებით.",
+        "ადამიანი არის ცენტრი. იარაღი ემსახურება ადამიანს.",
+        "ზოგჯერ უბრალოდ ყოფნა საკმარისია. არ არის საჭირო ყოველთვის ბრძოლა.",
+        "მთავარია, რომ მინუსში არ გადავიდე. მინუსი მხოლოდ სულიერი სიკვდილია.",
+        "შენ ხარ ვარსკვლავი. არავინ არ გაძლევს უფლებას, რომ ჩაქრე.",
+        "რაც არ უნდა რთული იყოს, ესეც გაივლის."
+    ]
+    quote_of_the_day = random.choice(daily_quotes)
+    st.markdown(f"""
+    <div class="daily-quote-box">
+        💡 "{quote_of_the_day}"
+    </div>
+    """, unsafe_allow_html=True)
+    # 👆 ახალი ბლოკის დასასრული 👆
     
     st.markdown(f"""
     <div class="hero-stats">
