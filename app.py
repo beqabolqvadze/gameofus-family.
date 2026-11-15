@@ -499,9 +499,25 @@ def save_user_data():
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+# 👇 ახალი დაზღვევა (მომხმარებლის მონაცემების გამიჯვნა) 👇
 if 'current_user' not in st.session_state or st.session_state.current_user != safe_username:
+    # 1. ჯერ ყველაფერი გავასუფთაოთ (რომ ძველი მონაცემები არ გადავიდეს)
+    for k, v in defaults.items():
+        if k == 'completed_missions':
+            st.session_state[k] = set()
+        elif isinstance(v, list):
+            st.session_state[k] = []
+        elif isinstance(v, dict):
+            st.session_state[k] = {}
+        else:
+            st.session_state[k] = v
+            
+    # 2. შემდეგ დავაყენოთ ახალი მომხმარებელი
     st.session_state.current_user = safe_username
+    
+    # 3. და ჩავტვირთოთ მისი მონაცემები (თუ ფაილი არსებობს)
     load_user_data()
+# 👆 დაზღვევის დასასრული 👆
 
 today_str = datetime.now().strftime("%Y-%m-%d")
 
@@ -579,7 +595,7 @@ tab1, tab2, tab3 = st.tabs([t("tab_child"), t("tab_parent"), t("tab_chess")])
 with tab1:
     st.subheader(t("hello_hero"))
     
-    # 👇 ახალი "დღის შეხსენების" ბლოკი 👇
+    # 👇 დღის ციტატა 👇
     daily_quotes = [
         "მე არ ვარ ჩემი ჩავარდნა. მე ვარ ჩემი ადგომა.",
         "როცა ტვინი გეუბნება, რომ მარტო ხარ, გაიხსენე, რომ სადღაც არის ვიღაც, ვისაც შენი იმედი აქვს.",
@@ -598,7 +614,7 @@ with tab1:
         💡 "{quote_of_the_day}"
     </div>
     """, unsafe_allow_html=True)
-    # 👆 ახალი ბლოკის დასასრული 👆
+    # 👆 დღის ციტატა 👆
     
     st.markdown(f"""
     <div class="hero-stats">
@@ -787,18 +803,21 @@ with tab2:
 
     st.divider()
 
-    # 📜 ემოციებისა და პროგრესის სრული არქივი (გვერდებად დაყოფით / შეჯამებით)
+    # 📜 ემოციებისა და პროგრესის სრული არქივი
     st.subheader(t("mood_history"))
     
     all_moods = st.session_state.mood_logs
     if all_moods:
         st.markdown(f"📊 სულ შენახულია **{len(all_moods)}** ემოციის ჩანაწერი.")
         
-        # გვერდებად დაყოფა (Pagination)
+        # გვერდებად დაყოფა - გასწორებული ვერსია
         items_per_page = 5
         total_pages = max(1, (len(all_moods) + items_per_page - 1) // items_per_page)
         
-        page_num = st.slider("📄 აირჩიეთ არქივის გვერდი:", min_value=1, max_value=total_pages, value=1, key=f"mood_page_{safe_username}")
+        if total_pages > 1:
+            page_num = st.slider("📄 აირჩიეთ არქივის გვერდი:", min_value=1, max_value=total_pages, value=1, key=f"mood_page_{safe_username}")
+        else:
+            page_num = 1
         
         start_idx = (page_num - 1) * items_per_page
         end_idx = start_idx + items_per_page
