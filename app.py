@@ -154,6 +154,16 @@ def inject_custom_css():
     </style>
     """, unsafe_allow_html=True)
 
+def scroll_to_top():
+    st.components.v1.html(
+        """
+        <script>
+            window.parent.scrollTo({top: 0, behavior: 'instant'});
+        </script>
+        """,
+        height=0,
+    )
+
 inject_custom_css()
 
 # ==========================================
@@ -616,6 +626,7 @@ selected_lang = st.sidebar.selectbox(
 
 if selected_lang != current_lang:
     st.session_state.language = selected_lang
+    scroll_to_top()
     st.rerun()
 
 st.sidebar.divider()
@@ -674,7 +685,6 @@ def load_user_data():
                         st.session_state[k] = set(data[k])
                     else:
                         st.session_state[k] = data[k]
-    # დაზღვევა: თუ rewards ცარიელია ან დაზიანებულია, აღდგეს საბაზისო სია
     if not st.session_state.get("rewards") or not isinstance(st.session_state["rewards"], list):
         st.session_state["rewards"] = copy.deepcopy(DEFAULT_REWARDS)
 
@@ -700,14 +710,12 @@ def save_user_data():
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# მომხმარებლის შეცვლისას მონაცემების სწორად გადატვირთვა
 if 'current_user' not in st.session_state or st.session_state.current_user != safe_username:
     for k, v in get_defaults().items():
         st.session_state[k] = v
     st.session_state.current_user = safe_username
     load_user_data()
 
-# დამატებითი დაზღვევა ყოველი გაშვებისას
 if not st.session_state.get("rewards"):
     st.session_state.rewards = copy.deepcopy(DEFAULT_REWARDS)
 
@@ -773,6 +781,7 @@ def render_medallion(unique_key):
                 st.session_state.xp -= 100
             save_user_data()
             st.balloons()
+            scroll_to_top()
             st.rerun()
 
 # ==========================================
@@ -834,11 +843,13 @@ with tab1:
         if st.button(t("energy_plus"), key=f"en_plus_{safe_username}", use_container_width=True):
             st.session_state.energy = min(10, st.session_state.energy + 2)
             save_user_data()
+            scroll_to_top()
             st.rerun()
     with col2:
         if st.button(t("energy_minus"), key=f"en_minus_{safe_username}", use_container_width=True):
             st.session_state.energy = max(1, st.session_state.energy - 2)
             save_user_data()
+            scroll_to_top()
             st.rerun()
 
     st.write("")
@@ -903,6 +914,7 @@ with tab1:
                     st.session_state.level += 1
                     st.session_state.xp -= 100
                 save_user_data()
+                scroll_to_top()
                 st.rerun()
 
     st.divider()
@@ -927,6 +939,7 @@ with tab1:
                     st.session_state.requested_rewards.append(r['title'])
                     save_user_data()
                     st.success(t("reward_requested"))
+                    scroll_to_top()
                     st.rerun()
                 else:
                     st.error(t("no_stars"))
@@ -956,16 +969,19 @@ with tab2:
         if st.button("➕ 1 ⭐", key=f"b1_{safe_username}", use_container_width=True):
             st.session_state.stars += 1
             save_user_data()
+            scroll_to_top()
             st.rerun()
     with col_b2:
         if st.button("➕ 3 ⭐", key=f"b3_{safe_username}", use_container_width=True):
             st.session_state.stars += 3
             save_user_data()
+            scroll_to_top()
             st.rerun()
     with col_b3:
         if st.button("➕ 5 ⭐", key=f"b5_{safe_username}", use_container_width=True):
             st.session_state.stars += 5
             save_user_data()
+            scroll_to_top()
             st.rerun()
 
     st.divider()
@@ -982,6 +998,7 @@ with tab2:
                 if st.button(t("mark_done"), key=f"done_{idx}_{safe_username}"):
                     st.session_state.requested_rewards.pop(idx)
                     save_user_data()
+                    scroll_to_top()
                     st.rerun()
             with col_req3:
                 if st.button(t("cant_do"), key=f"fail_{idx}_{safe_username}"):
@@ -989,13 +1006,12 @@ with tab2:
                     st.session_state.stars += 2
                     st.session_state.parent_penalties += 1
                     save_user_data()
+                    scroll_to_top()
                     st.rerun()
 
     st.divider()
 
-    # 📜 ემოციებისა და პროგრესის სრული არქივი
     st.subheader(t("mood_history"))
-    
     all_moods = st.session_state.mood_logs
     if all_moods:
         st.markdown(f"📊 სულ შენახულია **{len(all_moods)}** ემოციის ჩანაწერი.")
@@ -1025,7 +1041,6 @@ with tab2:
 
     st.divider()
 
-    # 📖 ზღაპრების ბიბლიოთეკა
     st.subheader("📖 ზღაპრების ბიბლიოთეკა")
     st.markdown("აირჩიეთ ზღაპარი წასაკითხად (თქვენთვის ან ბავშვისთვის):")
     
@@ -1040,7 +1055,6 @@ with tab2:
 
     st.divider()
 
-    # მისიების მართვა და წაშლა
     st.subheader("📋 მისიების მართვა (დამატება / წაშლა)")
     all_current_missions = AgeBasedMissions.get_missions_for_age(st.session_state.age, lang=st.session_state.language) + st.session_state.custom_missions
     
@@ -1056,6 +1070,7 @@ with tab2:
                         st.session_state.completed_missions.remove(m['id'])
                     save_user_data()
                     st.success("მისია წაიშალა!")
+                    scroll_to_top()
                     st.rerun()
             else:
                 st.caption("საბაზისო მისია")
@@ -1069,6 +1084,7 @@ with tab2:
             st.session_state.custom_missions.append({"title": new_m_title, "desc": new_m_desc, "id": new_id})
             save_user_data()
             st.success(t("mission_added"))
+            scroll_to_top()
             st.rerun()
 
     st.divider()
@@ -1077,6 +1093,7 @@ with tab2:
         st.session_state.completed_missions.clear()
         save_user_data()
         st.success(t("reset_success"))
+        scroll_to_top()
         st.rerun()
 
 # ---------------- TAB 3: შინაგანი ჭადრაკი ----------------
@@ -1186,6 +1203,7 @@ with tab3:
                 st.session_state.xp -= 100
             save_user_data()
             st.balloons()
+            scroll_to_top()
             st.rerun()
     else:
         st.info("აირჩიე მდგომარეობა ზემოთ, რომ ნახო განმარტება.")
