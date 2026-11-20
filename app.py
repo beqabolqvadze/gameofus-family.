@@ -3,7 +3,15 @@ import time
 import json
 import os
 import random
+import copy
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+# თბილისის დროის სარტყელი
+TBILISI_TZ = ZoneInfo("Asia/Tbilisi")
+
+def get_now():
+    return datetime.now(TBILISI_TZ)
 
 # გვერდის კონფიგურაცია
 st.set_page_config(
@@ -620,32 +628,35 @@ DB_FILE = f"user_data_{safe_username}.json"
 # ==========================================
 # 4. 🔒 Session State ინიციალიზაცია
 # ==========================================
-defaults = {
-    'language': "ქართული",
-    'xp': 0,
-    'level': 1,
-    'stars': 0,
-    'energy': 5,
-    'age': 26,
-    'completed_missions': set(),
-    'requested_rewards': [],
-    'parent_penalties': 0,
-    'custom_missions': [],
-    'mood_logs': [],
-    'last_active_date': datetime.now().strftime("%Y-%m-%d"),
-    'rewards': [
-        {"title": "🚲 30 წუთი ველოსიპედით სეირნობა", "cost": 3},
-        {"title": "🍦 საყვარელი ნაყინი", "cost": 5},
-        {"title": "🎬 საღამოს ანიმაციური ფილმი", "cost": 7},
-        {"title": "🎡 კვირას პარკში წასვლა", "cost": 10},
-    ],
-    'chess_history': [],
-    'daily_history': [],
-    'medallion_flips': 0,
-    'selected_mood_temp': None
-}
+DEFAULT_REWARDS = [
+    {"title": "🚲 30 წუთი ველოსიპედით სეირნობა", "cost": 3},
+    {"title": "🍦 საყვარელი ნაყინი", "cost": 5},
+    {"title": "🎬 საღამოს ანიმაციური ფილმი", "cost": 7},
+    {"title": "🎡 კვირას პარკში წასვლა", "cost": 10},
+]
 
-for k, v in defaults.items():
+def get_defaults():
+    return {
+        'language': "ქართული",
+        'xp': 0,
+        'level': 1,
+        'stars': 0,
+        'energy': 5,
+        'age': 26,
+        'completed_missions': set(),
+        'requested_rewards': [],
+        'parent_penalties': 0,
+        'custom_missions': [],
+        'mood_logs': [],
+        'last_active_date': get_now().strftime("%Y-%m-%d"),
+        'rewards': copy.deepcopy(DEFAULT_REWARDS),
+        'chess_history': [],
+        'daily_history': [],
+        'medallion_flips': 0,
+        'selected_mood_temp': None
+    }
+
+for k, v in get_defaults().items():
     if k not in st.session_state:
         st.session_state[k] = v
 
@@ -653,15 +664,19 @@ for k, v in defaults.items():
 # 5. მონაცემების შენახვა/ჩატვირთვა
 # ==========================================
 def load_user_data():
+    defaults_map = get_defaults()
     if os.path.exists(DB_FILE):
         with open(DB_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            for k in defaults:
+            for k in defaults_map:
                 if k in data:
                     if k == 'completed_missions':
                         st.session_state[k] = set(data[k])
                     else:
                         st.session_state[k] = data[k]
+    # დაზღვევა: თუ rewards ცარიელია ან დაზიანებულია, აღდგეს საბაზისო სია
+    if not st.session_state.get("rewards") or not isinstance(st.session_state["rewards"], list):
+        st.session_state["rewards"] = copy.deepcopy(DEFAULT_REWARDS)
 
 def save_user_data():
     data = {
@@ -685,27 +700,18 @@ def save_user_data():
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# 👇 ახალი დაზღვევა (მომხმარებლის მონაცემების გამიჯვნა) 👇
+# მომხმარებლის შეცვლისას მონაცემების სწორად გადატვირთვა
 if 'current_user' not in st.session_state or st.session_state.current_user != safe_username:
-    # 1. ჯერ ყველაფერი გავასუფთაოთ (რომ ძველი მონაცემები არ გადავიდეს)
-    for k, v in defaults.items():
-        if k == 'completed_missions':
-            st.session_state[k] = set()
-        elif isinstance(v, list):
-            st.session_state[k] = []
-        elif isinstance(v, dict):
-            st.session_state[k] = {}
-        else:
-            st.session_state[k] = v
-            
-    # 2. შემდეგ დავაყენოთ ახალი მომხმარებელი
+    for k, v in get_defaults().items():
+        st.session_state[k] = v
     st.session_state.current_user = safe_username
-    
-    # 3. და ჩავტვირთოთ მისი მონაცემები (თუ ფაილი არსებობს)
     load_user_data()
-# 👆 დაზღვევის დასასრული 👆
 
-today_str = datetime.now().strftime("%Y-%m-%d")
+# დამატებითი დაზღვევა ყოველი გაშვებისას
+if not st.session_state.get("rewards"):
+    st.session_state.rewards = copy.deepcopy(DEFAULT_REWARDS)
+
+today_str = get_now().strftime("%Y-%m-%d")
 
 if st.session_state.last_active_date != today_str:
     summary_entry = f"📅 {st.session_state.last_active_date} | მისიები: {len(st.session_state.completed_missions)} | ⭐ {st.session_state.stars} | ✨ XP: {st.session_state.xp}"
@@ -781,7 +787,6 @@ tab1, tab2, tab3 = st.tabs([t("tab_child"), t("tab_parent"), t("tab_chess")])
 with tab1:
     st.subheader(t("hello_hero"))
     
-    # 👇 დღის ციტატა 👇
     daily_quotes = [
         "მე არ ვარ ჩემი ჩავარდნა. მე ვარ ჩემი ადგომა.",
         "როცა ტვინი გეუბნება, რომ მარტო ხარ, გაიხსენე, რომ სადღაც არის ვიღაც, ვისაც შენი იმედი აქვს.",
@@ -800,7 +805,6 @@ with tab1:
         💡 "{quote_of_the_day}"
     </div>
     """, unsafe_allow_html=True)
-    # 👆 დღის ციტატა 👆
     
     st.markdown(f"""
     <div class="hero-stats">
@@ -904,7 +908,7 @@ with tab1:
     st.divider()
 
     st.subheader(t("rewards_title"))
-    weekday = datetime.now().weekday()
+    weekday = get_now().weekday()
     is_weekend_window = weekday in [4, 5, 6]
     if not is_weekend_window:
         st.info(t("rewards_locked_msg"))
@@ -996,7 +1000,6 @@ with tab2:
     if all_moods:
         st.markdown(f"📊 სულ შენახულია **{len(all_moods)}** ემოციის ჩანაწერი.")
         
-        # გვერდებად დაყოფა - გასწორებული ვერსია
         items_per_page = 5
         total_pages = max(1, (len(all_moods) + items_per_page - 1) // items_per_page)
         
@@ -1062,7 +1065,7 @@ with tab2:
     new_m_desc = st.text_input(t("mission_desc_input"), key=f"new_desc_{safe_username}")
     if st.button(t("add_mission_btn"), key=f"add_btn_{safe_username}"):
         if new_m_title and new_m_desc:
-            new_id = f"custom_{int(datetime.now().timestamp())}"
+            new_id = f"custom_{int(get_now().timestamp())}"
             st.session_state.custom_missions.append({"title": new_m_title, "desc": new_m_desc, "id": new_id})
             save_user_data()
             st.success(t("mission_added"))
